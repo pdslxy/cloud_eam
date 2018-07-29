@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.PatrolPointDao">
+
+
+    <select id="findPatrolPointListByFilters" resultType="map" parameterType="map">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+    </select>
+
+    <sql id="select_columns">
+        SELECT DISTINCT
+        pp.id,
+        pp.createtime,
+        pp.description,
+        pp.intelsoftware,
+        pp.isqrcode,
+        pp.patrolnum,
+        pp.remark,
+        pp.status,
+        pp.type,
+        pp.updatetime,
+        pp.lochierarchyid,
+        pp.orgid,
+        pp.siteid,
+        pp.major,
+        pp.minor
+        FROM
+        patrol_point pp
+        <if test="personId != null and personId != ''">
+            ,patrol_rf_collector prc
+        </if>
+    </sql>
+
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="id !=null">
+            and pp.id = #{id}
+        </if>
+        <if test="createtime!=null">
+            and pp.createtime = #{createtime}
+        </if>
+        <if test="description !=null">
+            and pp.description = #{description}
+        </if>
+        <if test="intelsoftware !=null">
+            and pp.intelsoftware = #{intelsoftware}
+        </if>
+        <if test="isqrcode !=null">
+            and pp.isqrcode = #{isqrcode}
+        </if>
+        <if test="patrolnum !=null">
+            and pp.patrolnum = #{patrolnum}
+        </if>
+        <if test="status != null and status.size()>0">
+            and pp.status in
+            <foreach collection="status" item="statu" index="index" open="(" separator=" , " close=")">
+                #{statu}
+            </foreach>
+        </if>
+        <if test="type != null and type.size()>0">
+            and pp.type in
+            <foreach collection="type" item="t" index="index" open="(" separator=" , " close=")">
+                #{t}
+            </foreach>
+        </if>
+        <if test="updatetime !=null">
+            and pp.updatetime = #{updatetime}
+        </if>
+        <if test="lochierarchyid !=null">
+            and pp.lochierarchyid = #{lochierarchyid}
+        </if>
+        <if test="siteId!=null">
+            and pp.siteid = #{siteId}
+        </if>
+        <if test="orgId!=null">
+            and pp.orgid = #{orgId}
+        </if>
+        <if test="patrolRouteId != null and patrolRouteId != ''">
+            and pp.id not in (select prp.patrolpointid from patrol_routepoint prp where prp.patrolrouteid =
+            #{patrolRouteId})
+        </if>
+        <if test="itemids!=null and itemids.length>0">
+            and pp.id not in
+            <foreach collection="itemids" item="item" close=")" open="(" index="index" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="words!=null and words!=''">
+            and
+            <foreach collection="words" item="word" index="index" close=""
+                     open="" separator=" and ">
+                (pp.patrolnum like concat('%',#{word},'%')
+                or pp.description like concat('%',#{word},'%'))
+            </foreach>
+        </if>
+        <if test="personId != null and personId != ''">
+            and pp.id = prc.collect_id
+            and prc.person_id = #{personId}
+            and prc.type = 'patrolPoint'
+        </if>
+        <choose>
+            <when test="sorts !=null and sorts !=''">
+                order by  pp.${sorts}
+            </when>
+            <otherwise>
+                order by pp.createtime Desc
+            </otherwise>
+        </choose>
+    </sql>
+
+    <select id="findByIdAndQrCodeNumAndSiteId" resultType="com.enerbos.cloud.eam.vo.PatrolPointVo"
+            parameterType="String">
+        <include refid="select_columns_qrcode"></include>
+        <include refid="where_columns_qrcode"></include>
+    </select>
+
+    <sql id="select_columns_qrcode">
+        SELECT
+        pp.id,
+        pp.createtime,
+        pp.description,
+        pp.intelsoftware,
+        pp.isqrcode,
+        pp.patrolnum,
+        pp.remark,
+        pp.status,
+        pp.type,
+        pp.updatetime,
+        pp.lochierarchyid,
+        pp.orgid,
+        pp.siteid,
+        pp.qrcodenum as qrCodeNum,
+        pp.isupdatedata,
+        pp.major,
+	    pp.minor
+        FROM
+        patrol_point pp
+    </sql>
+
+    <sql id="where_columns_qrcode">
+        where 1=1
+        <if test="ids !=null and ids.length>0">
+            and pp.id in
+            <foreach collection="ids" item="id" close=")" open="(" index="index" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="qrcodenum !=null and qrcodenum != ''">
+            and pp.qrcodenum = #{qrcodenum}
+        </if>
+        <if test="siteid!=null and siteid != ''">
+            and pp.siteid = #{siteid}
+        </if>
+    </sql>
+
+    <update id="updateIsupdatedata" parameterType="Object">
+        update patrol_point set isupdatedata=#{2} where id=#{0} and siteid=#{1}
+    </update>
+
+
+    <sql id="select_columns_order">
+        SELECT
+        pp.id,
+        pp.createtime,
+        pp.description,
+        pp.intelsoftware,
+        pp.isqrcode,
+        pp.patrolnum,
+        pp.remark,
+        pp.status,
+        pp.type,
+        pp.updatetime,
+        pp.lochierarchyid,
+        pp.orgid,
+        pp.siteid,
+        pp.major,
+        pp.minor,
+        pr.startdate,
+        pr.enddate
+    </sql>
+
+    <select id="findPatrolPointListByOrderId" resultType="com.enerbos.cloud.eam.vo.PatrolPointVo" parameterType="String">
+        <include refid="select_columns_order"></include>
+        FROM
+        patrol_point pp,patrol_record pr
+        where
+           pp.id=pr.patrolpointid and pr.patrolorderid=#{0}
+    </select>
+
+</mapper>

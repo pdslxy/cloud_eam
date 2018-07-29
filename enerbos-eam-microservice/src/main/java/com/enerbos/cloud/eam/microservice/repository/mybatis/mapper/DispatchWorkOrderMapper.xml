@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.DispatchWorkOrderDao">
+
+    <!-- 查询字段公共sql -->
+    <sql id="selectAllColumns">
+        <![CDATA[
+
+ 			SELECT
+ 				id as id,
+ 				create_user as createUser,
+ 				create_date as createDate,
+ 				update_date as updateDate,
+ 				id as workOrderId,
+				report_remarks as reportRemarks,
+                accept_description as acceptDescription,
+                report_person_tel as reportPersonTel,
+                description as description,
+                demand_person as demandPerson,
+                org_id as orgId,
+                completion_time as completionTime,
+                demand_dept as demandDept,
+                report_date as reportDate,
+                work_order_status as workOrderStatus,
+                order_report_person_id as orderReportPersonId,
+                process_instance_id as processInstanceId,
+                work_order_status_date as workOrderStatusDate,
+                accept_time as acceptTime,
+                demand_person_tel as demandPersonTel,
+                consume_hours as consumeHours,
+                receive_time as receiveTime,
+                work_order_num as workOrderNum,
+                report_person_id as reportPersonId,
+                report_description as reportDescription,
+                site_id as siteId,
+                dispatch_person_id as dispatchPersonId,
+                plan_complete_time as planCompleteTime,
+                order_report_person_id as orderReportPersonId
+ 			FROM eam_dispatch_order DispatchWorkOrder
+
+        ]]>
+    </sql>
+
+    <sql id="order">
+        order by
+        <choose>
+            <when test="sorts != null and sorts.length > 0">
+                ${sorts}
+            </when>
+            <otherwise>
+                createDate
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="order != null and (order=='desc' or order=='asc')">
+                ${order}
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+    </sql>
+
+    <select id="findListByFilter" parameterType="com.enerbos.cloud.eam.vo.DispatchWorkOrderListFilterVo"
+            resultType="com.enerbos.cloud.eam.vo.DispatchWorkOrderListVo">
+        SELECT * FROM
+        (
+        SELECT
+        DispatchWorkOrder.id as id,
+        DispatchWorkOrder.create_user as createUser,
+        DispatchWorkOrder.create_date as createDate,
+        DispatchWorkOrder.update_date as updateDate,
+        DispatchWorkOrder.id as workOrderId,
+        DispatchWorkOrder.work_order_num as workOrderNum,
+        DispatchWorkOrder.description as description,
+        DispatchWorkOrder.work_order_status as workOrderStatus,
+        DispatchWorkOrder.report_person_id as reportPersonId,
+        DispatchWorkOrder.report_date as reportDate,
+        DispatchWorkOrder.demand_person as demandPerson,
+        DispatchWorkOrder.demand_dept as demandDept,
+        DispatchWorkOrder.accept_time as acceptTime,
+        DispatchWorkOrder.org_id as orgId,
+        DispatchWorkOrder.site_id as siteId,
+        DispatchWorkOrder.process_instance_id as processInstanceId,
+        DispatchWorkOrder.demand_person_tel as demandPersonTel,
+        <choose>
+            <!-- 如果人员ID为空，则不需要连表操作 -->
+            <when test="personId != null ">
+                EXISTS (
+                SELECT
+                1
+                FROM
+                eam_dispatch_order_rf_collector DispatchWorkOrderRfCollector
+                WHERE
+                DispatchWorkOrder.id = DispatchWorkOrderRfCollector.work_order_id
+                AND DispatchWorkOrderRfCollector.person_id = #{personId}
+                ) AS collect
+            </when>
+            <otherwise>
+                0 as collect
+            </otherwise>
+        </choose>
+        FROM
+        eam_dispatch_order DispatchWorkOrder
+        ) DispatchWorkOrderListVo
+        where 1 = 1
+        <if test="fuzzy != null and !fuzzy.isEmpty()">
+            and (
+            <foreach collection="fuzzy" item="_key" index="index" separator="or" open=" (" close=") ">
+                DispatchWorkOrderListVo.workOrderNum like CONCAT('%', #{_key}, '%')
+                or DispatchWorkOrderListVo.description like CONCAT('%', #{_key}, '%')
+                or DispatchWorkOrderListVo.demandDept like CONCAT('%', #{_key}, '%')
+                or DispatchWorkOrderListVo.demandPerson like CONCAT('%', #{_key}, '%')
+            </foreach>
+            )
+        </if>
+        <if test="workOrderNum != null">
+            and DispatchWorkOrderListVo.workOrderNum like CONCAT('%', #{workOrderNum},'%')
+        </if>
+        <if test="description != null">
+            and DispatchWorkOrderListVo.description like CONCAT('%', #{description},'%')
+        </if>
+        <if test="workOrderStatus != null and !workOrderStatus.isEmpty()">
+            and DispatchWorkOrderListVo.workOrderStatus in
+            <foreach collection="workOrderStatus" item="_key" index="index" separator="," open=" (" close=") ">
+                #{_key}
+            </foreach>
+        </if>
+        <if test="demandPerson != null">
+            and DispatchWorkOrderListVo.demandPerson like CONCAT('%', #{demandPerson},'%')
+        </if>
+        <if test="demandDept != null">
+            and DispatchWorkOrderListVo.demandDept like CONCAT('%', #{demandDept}, '%')
+        </if>
+        <if test="reportPersonId != null and !reportPersonId.isEmpty()">
+            and DispatchWorkOrderListVo.reportPersonId in
+            <foreach collection="reportPersonId" item="_key" index="index" separator="," open=" (" close=") ">
+                #{_key}
+            </foreach>
+        </if>
+        <if test="reportDateBegin != null">
+            <![CDATA[ and DispatchWorkOrderListVo.reportDate  >= #{reportDateBegin} ]]>
+        </if>
+        <if test="reportDateEnd != null">
+            <![CDATA[ and DispatchWorkOrderListVo.reportDate  <= #{reportDateEnd} ]]>
+        </if>
+        <if test="acceptTimeBegin != null">
+            <![CDATA[ and DispatchWorkOrderListVo.acceptTime  >= #{acceptTimeBegin} ]]>
+        </if>
+        <if test="acceptTimeEnd != null">
+            <![CDATA[ and DispatchWorkOrderListVo.acceptTime  <= #{acceptTimeEnd} ]]>
+        </if>
+        <if test="collect != null">
+            and DispatchWorkOrderListVo.collect = #{collect}
+        </if>
+        <if test="actualExecutionPersonId != null and !actualExecutionPersonId.isEmpty()">
+            and EXISTS (SELECT 1 FROM
+            eam_order_person EamOrderPerson
+            WHERE
+            workOrderId = EamOrderPerson.order_id
+            AND EamOrderPerson.field_type = #{actualExecutionPersonFieldType}
+            AND EamOrderPerson.person_id IN
+            <foreach collection="actualExecutionPersonId" item="_key" index="index" separator="," open=" (" close=") ">
+                #{_key}
+            </foreach>
+            )
+        </if>
+        <if test="acceptPersonId != null and !acceptPersonId.isEmpty()">
+            and EXISTS (SELECT 1 FROM
+            eam_order_person EamOrderPerson
+            WHERE
+            workOrderId = EamOrderPerson.order_id
+            AND EamOrderPerson.field_type = #{acceptPersonFieldType}
+            AND EamOrderPerson.person_id IN
+            <foreach collection="acceptPersonId" item="_key" index="index" separator="," open=" (" close=") ">
+                #{_key}
+            </foreach>
+            )
+        </if>
+        <if test="orgId != null">
+            and DispatchWorkOrderListVo.orgId = #{orgId}
+        </if>
+        <if test="siteId != null">
+            and DispatchWorkOrderListVo.siteId = #{siteId}
+        </if>
+        <include refid="order"/>
+    </select>
+
+    <select id="checkWorkOrderNum" parameterType="String" resultType="Integer">
+        SELECT 1 FROM eam_dispatch_order DispatchWorkOrder WHERE DispatchWorkOrder.work_order_num = #{workOrderNum}
+    </select>
+
+    <select id="findOne" parameterType="String" resultType="com.enerbos.cloud.eam.vo.DispatchWorkOrderFlowVo">
+        <include refid="selectAllColumns"/>
+        WHERE id = #{id}
+    </select>
+
+    <select id="findList" parameterType="java.util.List" resultType="com.enerbos.cloud.eam.vo.DispatchWorkOrderFlowVo">
+        <include refid="selectAllColumns"/>
+        WHERE
+        <choose>
+            <when test="list != null and list.size() > 0">
+                id in
+                <foreach collection="list" item="_key" index="index" separator="," open=" (" close=") ">
+                    #{_key}
+                </foreach>
+            </when>
+            <otherwise>
+                1 != 1
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findDispatchWorkOrderTotal" parameterType="map"
+            resultType="com.enerbos.cloud.eam.vo.OrderCountBySiteVo">
+
+        select count(*) total FROM eam_dispatch_order where 1=1
+        <if test="orgId != null ">
+            <![CDATA[ and org_id  = #{orgId} ]]>
+        </if>
+        <if test="startDate != null ">
+            <![CDATA[ and create_date  >= #{startDate} ]]>
+        </if>
+        <if test="endDate != null ">
+            <![CDATA[ and create_date  <= #{endDate} ]]>
+        </if>
+    </select>
+
+    <select id="findMaxCountOrder" parameterType="map" resultType="com.enerbos.cloud.eam.vo.OrderMaxCountVo">
+
+        SELECT a.total AS maxTotal,a.site_id AS siteId,'最大派工工单' AS orderName FROM
+        (SELECT COUNT(*) total ,site_id FROM eam_dispatch_order WHERE 1=1
+        <include refid="whereColumn"/>
+        GROUP BY site_id) a WHERE a.total = ( SELECT MAX(total) FROM (SELECT COUNT(*) total ,site_id FROM
+        eam_dispatch_order WHERE 1=1
+        <include refid="whereColumn"/>
+        GROUP BY site_id) b)
+
+    </select>
+
+    <sql id="whereColumn">
+        <if test="orgId != null ">
+            <![CDATA[ and org_id  = #{orgId} ]]>
+        </if>
+        <if test="startDate != null ">
+            <![CDATA[ and create_date  >= #{startDate} ]]>
+        </if>
+        <if test="endDate != null ">
+            <![CDATA[ and create_date  <=#{endDate}  ]]>
+        </if>
+    </sql>
+
+</mapper>

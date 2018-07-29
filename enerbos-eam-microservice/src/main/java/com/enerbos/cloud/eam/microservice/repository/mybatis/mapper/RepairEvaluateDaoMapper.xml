@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.RepairEvaluateDao">
+
+
+    <select id="findListByFilter" resultType="com.enerbos.cloud.eam.vo.RepairEvaluateVo"
+            parameterType="com.enerbos.cloud.eam.vo.RepairEvaluateVo">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+        <include refid="order"></include>
+    </select>
+
+    <sql id="select_columns">
+        SELECT
+        e.id,
+        e.person_id as personId,
+        e.site_id as siteId,
+        e.repair_quality as repairQuality,
+        e.repair_attitude as repairAttitude,
+        e.description,
+        e.repair_order_id as repairOrderId,
+        e.img_path as imgPath  
+        FROM
+        eam_repair_evaluate e
+    </sql>
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="id !=null">
+            and e.id = #{id}
+        </if>
+        <if test="person_id !=null">
+            and e.person_id = #{personId}
+        </if>
+        <if test="site_id!=null">
+            and e.site_id = #{siteId}
+        </if>
+        <if test="repair_quality!=null">
+            and e.repair_quality = #{repairQuality}
+        </if>
+        <if test="repair_attitude!=null">
+            and e.repair_quality = #{repairAttitude}
+        </if>
+        <if test="description!=null">
+            and e.description = #{description}
+        </if>
+        <if test="repair_order_id!=null">
+            and e.repair_order_id = #{repairOrderId}
+        </if>
+        <if test="img_path!=null">
+            and e.img_path = #{imgPath}
+        </if>
+
+    </sql>
+
+    <sql id="order">
+        <choose>
+            <when test="sorts != null and sorts!='' ">
+                order by ${sorts}
+            </when>
+            <otherwise>
+                order by id
+            </otherwise>
+        </choose>
+        <if test=" order != null and ( order=='desc' or  order=='asc')">
+            ${order}
+        </if>
+    </sql>
+
+    <select id="findOne" parameterType="String" resultType="com.enerbos.cloud.eam.microservice.domain.RepairEvaluate">
+        <include refid="select_columns" />
+        WHERE id = #{id}
+    </select>
+
+    <select id="findRepairEvalueByOrderId" parameterType="String" resultType="com.enerbos.cloud.eam.microservice.domain.RepairEvaluate">
+        <include refid="select_columns" />
+        WHERE repair_order_id = #{repairOrderId} 
+    </select>
+
+    <select id="findCountRepairAndEvaluate" parameterType="String" resultType="map">
+      select count(id) as ypj from eam_repair_evaluate where site_id=#{siteId} and person_id =#{personId} 
+    </select>
+</mapper>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceMaintenancePlanDao">
+
+    <!-- 查询字段公共sql -->
+	<sql id="selectAllColumns">
+		<![CDATA[
+			SELECT 
+				id            AS   id          ,
+				maintenance_plan_num      AS   maintenancePlanNum    ,
+				description          AS   description        ,
+				location_id      AS   locationId    ,
+				udisww           AS   udisww         ,
+				job_standard_id        AS   jobStandardId      ,
+				project_type AS projectType,
+				site_id           AS   siteId         ,
+				org_id   AS   orgId ,
+				status       AS   status     ,
+				status_date       AS   statusDate     ,
+				maintenance_plan_counter        AS   maintenancePlanCounter      ,
+				frequency AS frequency,
+				contract_id as contractId,
+				frequency_unit       AS   frequencyUnit     ,
+				next_date         AS   nextDate       ,
+				last_end_date      AS   lastEndDate    ,
+				last_start_date    AS   lastStartDate  ,
+				use_target_date AS  useTargetDate,
+				ext_date AS  extDate,
+				incident_level AS incidentLevel,
+				week_frequency           AS   weekFrequency         ,
+				work_order_type       AS   workOrderType     ,
+				work_order_status       AS   workOrderStatus     ,
+				personliable_work_group      AS   personliableWorkGroup,
+				personliable_id       AS   personliableId,
+				assign_person_id      AS   assignPersonId,
+				 update_date as updateDate,
+				 create_user as createUser,
+				 create_date as createDate
+				from eam_maintenance_plan maintenanceMaintenancePlan
+		]]>
+	</sql>
+
+	<select id="findMaintenancePlanById" parameterType="String" resultType="com.enerbos.cloud.eam.vo.MaintenanceMaintenancePlanVo">
+        <include refid="selectAllColumns" /> 
+         where maintenanceMaintenancePlan.id = #{id}
+    </select>
+
+	<select id="findAllMaintenancePlanByStatus" parameterType="String" resultType="com.enerbos.cloud.eam.vo.MaintenanceMaintenancePlanVo">
+		<include refid="selectAllColumns" />
+		where maintenanceMaintenancePlan.status = #{status}
+	</select>
+
+    <select id="findMaintenancePlanByMaintenancePlanNum" parameterType="String" resultType="com.enerbos.cloud.eam.vo.MaintenanceMaintenancePlanVo">
+        <include refid="selectAllColumns" />  
+         where maintenanceMaintenancePlan.maintenance_plan_num = #{maintenancePlanNum}
+    </select>
+
+	<select id="findPageMaintenancePlanList" resultType="com.enerbos.cloud.eam.vo.MaintenanceMaintenancePlanForListVo" parameterType="com.enerbos.cloud.eam.vo.MaintenanceMaintenancePlanSelectVo">
+		SELECT
+		id            AS   id          ,
+		maintenance_plan_num      AS   maintenancePlanNum    ,
+		description          AS   description        ,
+		job_standard_id        AS   jobStandardId      ,
+		project_type AS projectType,
+		site_id           AS   siteId         ,
+		status       AS   status,
+		collect
+		FROM
+		(SELECT
+		*,
+		<choose>
+			<!-- 如果人员ID为空，则不需要连表操作 -->
+			<when test="personId != null ">
+				EXISTS (
+				SELECT
+				1
+				FROM
+				eam_maintenance_plan_rf_collector maintenancePlanRfCollector
+				WHERE
+				eam_maintenance_plan.id = maintenancePlanRfCollector.maintenance_plan_id
+				AND maintenancePlanRfCollector.person_id = #{personId}
+				) AS collect
+			</when>
+			<otherwise>
+				0 as collect
+			</otherwise>
+		</choose>
+		from eam_maintenance_plan)  maintenanceMaintenancePlan
+		where 1=1
+		<if test = "projectType != null  and projectType.size()>0">
+			and maintenanceMaintenancePlan.project_type  in
+			<foreach collection="projectType" item="projectType" index="index"  open="(" separator=" , " close=")">
+				#{projectType}
+			</foreach>
+		</if>
+		<if test = "status != null  and status.size()>0">
+			and maintenanceMaintenancePlan.status  in
+			<foreach collection="status" item="status" index="index"  open="(" separator=" , " close=")">
+				#{status}
+			</foreach>
+		</if>
+		<if test = "workOrderStatus != null  and workOrderStatus.size()>0">
+			and maintenanceMaintenancePlan.work_order_status  in
+			<foreach collection="workOrderStatus" item="workOrderStatus" index="index"  open="(" separator=" , " close=")">
+				#{workOrderStatus}
+			</foreach>
+		</if>
+		<if test = "personliableId != null  and personliableId.size()>0">
+			and maintenanceMaintenancePlan.personliable_id  in
+			<foreach collection="personliableId" item="personliableId" index="index"  open="(" separator=" , " close=")">
+				#{personliableId}
+			</foreach>
+		</if>
+		<if test = "assignPersonId != null  and assignPersonId.size()>0">
+			and maintenanceMaintenancePlan.assign_person_id  in
+			<foreach collection="assignPersonId" item="assignPersonId" index="index"  open="(" separator=" , " close=")">
+				#{assignPersonId}
+			</foreach>
+		</if>
+		<if test = "workOrderType != null and workOrderType.size()>0">
+			and maintenanceMaintenancePlan.work_order_type  in
+			<foreach collection="workOrderType" item="workOrderType" index="index"  open="(" separator=" , " close=")">
+				#{workOrderType}
+			</foreach>
+		</if>
+		<if test = "contractId != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.contract_id  = #{contractId} ]]>
+		</if>
+		<if test = "siteId != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.site_id  = #{siteId} ]]>
+		</if>
+		<if test = "orgId != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.org_id  = #{orgId} ]]>
+		</if>
+		<if test = "udisww != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.udisww  = #{udisww} ]]>
+		</if>
+		<if test = "lastStartDateStartDate != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.last_start_date  >= #{lastStartDateStartDate} ]]>
+		</if>
+		<if test = "lastStartDateEndDate != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.last_start_date  <= DATE_SUB(#{lastStartDateEndDate},INTERVAL -1 DAY) ]]>
+		</if>
+		<if test = "lastEndDateStartDate != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.last_end_date  >= #{lastEndDateStartDate} ]]>
+		</if>
+		<if test = "lastEndDateEndDate != null ">
+			<![CDATA[ and maintenanceMaintenancePlan.last_end_date  <= DATE_SUB(#{lastEndDateEndDate},INTERVAL -1 DAY) ]]>
+		</if>
+		<if test = "wordsList != null ">
+			<foreach collection="wordsList" item="word" index="index" separator="  " >
+				and (maintenanceMaintenancePlan.maintenance_plan_num like CONCAT('%',#{word},'%') or
+				maintenanceMaintenancePlan.description like CONCAT('%',#{word},'%')
+				)
+			</foreach>
+		</if>
+		<if test="collect != null">
+			and maintenanceMaintenancePlan.collect  = #{collect}
+		</if>
+		<if test="jobStandardId != null">
+			and maintenanceMaintenancePlan.job_standard_id  = #{jobStandardId}
+		</if>
+		<choose>
+			<when test="sorts !=null and sorts !=''">
+				order by ${sorts}
+			</when>
+			<otherwise>
+				order by maintenanceMaintenancePlan.create_date desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findPageMaintenancePlanByAssetId" resultType="com.enerbos.cloud.eam.vo.MaintenanceMaintenancePlanForListVo" parameterType="com.enerbos.cloud.eam.vo.MaintenanceForAssetFilterVo">
+		SELECT DISTINCT
+		maintenanceMaintenancePlan.id            AS   id          ,
+		maintenanceMaintenancePlan.maintenance_plan_num      AS   maintenancePlanNum    ,
+		maintenanceMaintenancePlan.description          AS   description        ,
+		maintenanceMaintenancePlan.job_standard_id        AS   jobStandardId      ,
+		maintenanceMaintenancePlan.project_type AS projectType,
+		maintenanceMaintenancePlan.site_id           AS   siteId         ,
+		maintenanceMaintenancePlan.status       AS   status
+		from eam_maintenance_plan maintenanceMaintenancePlan,eam_maintenance_plan_asset maintenancePlanAsset
+		where maintenanceMaintenancePlan.id=maintenancePlanAsset.maintenance_plan_id
+		<if test = "assetId != null ">
+			<![CDATA[ and maintenancePlanAsset.asset_id  = #{assetId} ]]>
+		</if>
+		<choose>
+			<when test="sorts !=null and sorts !=''">
+				order by ${sorts}
+			</when>
+			<otherwise>
+				order by maintenanceMaintenancePlan.create_date desc
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

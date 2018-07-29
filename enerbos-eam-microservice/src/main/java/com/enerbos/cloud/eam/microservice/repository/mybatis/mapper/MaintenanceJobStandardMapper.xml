@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceJobStandardDao">
+
+	<!-- 查询字段公共sql -->
+	<sql id="selectAllColumns">
+		<![CDATA[
+			SELECT 
+				id           AS   id        ,
+				description         AS   description      ,
+				duration            AS   duration         ,
+				job_standard_num               AS   jobStandardNum            ,
+				need_tools              AS   needTools           ,
+				status_date          AS   statusDate       ,
+				classification_id    AS   classificationId ,
+				job_type            AS   jobType         ,
+				org_id      AS   orgId   ,
+				site_id              AS   siteId           ,
+				standard_type      AS   standardType   ,
+				status            AS   status         ,
+				maintenance_plan_model             AS   maintenancePlanModel, 
+				update_date as updateDate,
+				create_user as createUser,
+				create_date as createDate
+				from eam_job_standard maintenanceJobStandard
+		]]>
+	</sql>
+
+	<select id="findJobStandardByID" parameterType="String" resultType="com.enerbos.cloud.eam.microservice.domain.MaintenanceJobStandard">
+        <include refid="selectAllColumns" /> 
+         where maintenanceJobStandard.id = #{id}
+    </select>
+    <select id="findJobStandardByJobStandardNum" parameterType="String" resultType="com.enerbos.cloud.eam.vo.MaintenanceJobStandardVo">
+        <include refid="selectAllColumns" />  
+         where maintenanceJobStandard.job_standard_num = #{jobStandardNum}
+    </select>
+    
+    <sql id="where_fragement">
+		where 1=1
+		<if test = "siteId != null and siteId != ''">
+			<![CDATA[ and (maintenanceJobStandard.site_id  = #{siteId} or maintenanceJobStandard.site_id is null or maintenanceJobStandard.site_id='') ]]>
+		</if>
+		<if test = "siteId == null or siteId == ''">
+			<![CDATA[ and (maintenanceJobStandard.site_id is null or maintenanceJobStandard.site_id='') ]]>
+		</if>
+		<if test = "orgId != null ">
+			<![CDATA[ and (maintenanceJobStandard.org_id  = #{orgId} or maintenanceJobStandard.org_id is null or maintenanceJobStandard.org_id='')  ]]>
+		</if>
+		<if test = "status != null  and status.size()>0">
+			and maintenanceJobStandard.status in
+			<foreach collection="status" item="status" index="index" open="(" separator="," close=")">
+				#{status}
+			</foreach>
+		</if>
+		<if test = "classificationId != null  and classificationId.size()>0">
+			and maintenanceJobStandard.classification_id in
+			<foreach collection="classificationId" item="classificationId" index="index" open="(" separator="," close=")">
+				#{classificationId}
+			</foreach>
+		</if>
+		<if test = "standardType != null  and standardType.size()>0">
+			and maintenanceJobStandard.standard_type in
+			<foreach collection="standardType" item="standardType" index="index" open="(" separator="," close=")" >
+				#{standardType}
+			</foreach>
+		</if>
+		<if test = "jobType != null  and jobType.size()>0">
+			and maintenanceJobStandard.job_type in
+			<foreach collection="jobType" item="jobType" index="index" open="(" separator="," close=")" >
+				#{jobType}
+			</foreach>
+		</if>
+		<if test = "wordsList != null ">
+			<foreach collection="wordsList" item="word" index="index" separator="  " >
+				and (maintenanceJobStandard.job_standard_num like CONCAT('%',#{word},'%') or
+				maintenanceJobStandard.description like CONCAT('%',#{word},'%')
+				)
+			</foreach> 
+		</if>
+	</sql>
+	
+	<select id="findJobStandard" resultType="com.enerbos.cloud.eam.vo.MaintenanceJobStandardForListVo" parameterType="com.enerbos.cloud.eam.vo.MaintenanceJobStandardSelectVo">
+		SELECT
+		id           AS   id        ,
+		description         AS   description      ,
+		job_standard_num               AS   jobStandardNum            ,
+		job_type            AS   jobType         ,
+		org_id      AS   orgId   ,
+		site_id              AS   siteId           ,
+		standard_type      AS   standardType   ,
+		status            AS   status ,
+		collect as collect
+		FROM
+		(SELECT *,
+				<choose>
+					<!-- 如果人员ID为空，则不需要连表操作 -->
+					<when test="personId != null ">
+						EXISTS (
+						SELECT
+						1
+						FROM
+						eam_job_standard_rf_collector jobStandardRfCollector
+						WHERE
+						eam_job_standard.id = jobStandardRfCollector.job_standard_id
+						AND jobStandardRfCollector.person_id = #{personId}
+						) AS collect
+					</when>
+					<otherwise>
+						0 as collect
+					</otherwise>
+				</choose>
+				from eam_job_standard ) maintenanceJobStandard
+		<include refid="where_fragement" />
+		<if test="collect != null">
+			and maintenanceJobStandard.collect  = #{collect}
+		</if>
+		<choose>
+			<when test="sorts !=null and sorts !=''">
+				order by ${sorts}
+			</when>
+			<otherwise>
+				order by maintenanceJobStandard.create_date desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findPageJobStandardByAssetId" resultType="com.enerbos.cloud.eam.vo.MaintenanceJobStandardForListVo" parameterType="com.enerbos.cloud.eam.vo.MaintenanceForAssetFilterVo">
+		SELECT DISTINCT
+				id           AS   id        ,
+				description         AS   description      ,
+				job_standard_num               AS   jobStandardNum            ,
+				job_type            AS   jobType         ,
+				org_id      AS   orgId   ,
+				site_id              AS   siteId           ,
+				standard_type      AS   standardType   ,
+				status            AS   status 
+		from eam_job_standard maintenanceJobStandard
+		where 1=1 
+		<if test = "assetId != null ">
+			<![CDATA[ and maintenanceJobStandard.id in (
+			SELECT DISTINCT job_standard_id from eam_work_order where id in (
+			SELECT DISTINCT work_order_id from eam_work_order_asset 
+			where asset_id=#{assetId}))  ]]>
+		</if>
+		<choose>
+			<when test="sorts !=null and sorts !=''">
+				order by ${sorts}
+			</when>
+			<otherwise>
+				order by maintenanceJobStandard.create_date desc
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

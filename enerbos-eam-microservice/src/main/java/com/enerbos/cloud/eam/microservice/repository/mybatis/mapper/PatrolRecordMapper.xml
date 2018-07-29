@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.PatrolRecordDao">
+
+
+    <select id="findByOrderIdAndPointId" resultType="com.enerbos.cloud.eam.vo.PatrolRecordVo" parameterType="String">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+    </select>
+
+    <sql id="select_columns">
+      select
+      pr.id,
+      pr.patrolorderid patrolOrderId,
+      pr.patrolpointid patrolPointId,
+      pr.patrol_point_dsr patrolPointDsr,
+      pr.isqualified,
+      pr.patrolrecorddsr patrolRecordDsr,
+      pr.startdate,
+      pr.enddate,
+      pr.duration,
+      pr.remark
+      FROM patrol_record pr
+	</sql>
+
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="patrolPointId !=null and patrolPointId != ''">
+            and pr.patrolpointid = #{patrolPointId}
+        </if>
+        <if test="patrolOrderId !=null and patrolOrderId != ''">
+            and pr.patrolorderid = #{patrolOrderId}
+        </if>
+    </sql>
+
+    <delete id="deleteByOrderId" parameterType="String">
+       delete from patrol_record  where patrolorderid=#{patrolOrderId}
+    </delete>
+
+
+</mapper>

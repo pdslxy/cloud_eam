@@ -1,0 +1,93 @@
+server:
+  port: 9220
+
+spring:
+  zipkin:
+    base-url: http://192.168.1.5:5002
+  kafka:
+    address: 192.168.1.207:9092
+    consumer:
+      group-id: kafka_java_group
+      auto-offset-reset: earliest
+management:
+  security:
+    enabled: false
+endpoints:
+  health:
+    sensitive: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:9001/eureka/
+  instance:
+    preferIpAddress: true
+
+security:
+  oauth2:
+    resource:
+      user-info-uri: http://localhost:9002/uaa/user
+#    演示环境认证地址
+#      user-info-uri: http://auth.c5a22462eac64411c96bb62944161f529.cn-shanghai.alicontainer.com/uaa/user
+ #断路器，断路器跳闸后等待多长时间重试
+hystrix.command.default.circuitBreaker.sleepWindowInMilliseconds: 10000
+
+#断路器，请求发出后多长时间超时
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 100000
+     
+security.ignored: /swagger-ui.html, /swagger-resources/**, /v2/api-docs/**, /webjars/springfox-swagger-ui/**, /webjars/springfox-swagger-ui/css/**, /webjars/springfox-swagger-ui/lib/**, /webjars/springfox-swagger-ui/images/**, /webjars/springfox-swagger-ui/fonts/**,/eam/open/simpleRegister
+
+#二维码logo
+qrcodePath: user_top.jpg
+
+#JPush App推送消息
+jpush:
+  masterSecret: a4901bff596eef92a807c7f3
+  appKey: cbbe871922d8dfd931c2fe36
+  maxRetryTimes: 3
+  pushSwitch: open
+  # 设置jpush是否是正式环境，true/false
+  pushProduction: true
+
+# 演示环境地址配置
+#ribbon:
+#  eureka:
+#   enabled: false
+#
+#enerbos-eam-microservice:
+#  ribbon:
+#      listOfServers: http://eam-micro.c5a22462eac64411c96bb62944161f529.cn-shanghai.alicontainer.com/
+#
+#enerbos-uas-microservice:
+#  ribbon:
+#      listOfServers: http://uas-micro.c5a22462eac64411c96bb62944161f529.cn-shanghai.alicontainer.com/
+#
+#enerbos-ams-microservice:
+#  ribbon:
+#      listOfServers: http://ams-micro.c5a22462eac64411c96bb62944161f529.cn-shanghai.alicontainer.com
+#
+#enerbos-wfs-microservice:
+#  ribbon:
+#      listOfServers: http://wfs-micro.c5a22462eac64411c96bb62944161f529.cn-shanghai.alicontainer.com
+#
+#enerbos-tts-microservice:
+#  ribbon:
+#      listOfServers: http://tts-micro.c5a22462eac64411c96bb62944161f529.cn-shanghai.alicontainer.com
+
+#简单注册时使用的总部管理员角色资源
+orgAdminRoleResCodeList: adc.dashboard,adc.orgAndSite,adc.orgAndSite.org,adc.orgAndSite.org.list,adc.orgAndSite.site,adc.orgAndSite.site.list,adc.user,adc.user.role,adc.user.role.list,adc.user.role.create,adc.user.role.update,adc.user.role.delete,adc.user.role.empower,adc.user.personAndUser,adc.user.personAndUser.list,adc.user.personAndUser.create,adc.user.personAndUser.update,adc.user.personAndUser.invite,adc.user.personAndUser.remove,adc.user.personAndUser.addOrgsAndSitesAndProductsAndRoles,adc.user.personAndUser.removeOrgsAndSitesAndProductsAndRoles,adc.user.usergroup,adc.user.usergroup.list,adc.user.usergroup.create,adc.user.usergroup.update,adc.user.usergroup.delete,adc.user.usergroup.addOrRemoveUser
+
+#简单注册时使用的总部管理层角色资源
+orgManagerRoleResCodeList: eam.common,eam.common.index,eam.common.index.dashboard,eam.common.index.sitelist,eam.common.task,eam.common.settings
+
+#简单注册时使用的项目管理员角色资源
+siteAdminRoleResCodeList: adc.dashboard,adc.orgAndSite,adc.orgAndSite.org,adc.orgAndSite.org.list,adc.orgAndSite.site,adc.orgAndSite.site.list,adc.user,adc.user.role,adc.user.role.list,adc.user.role.create,adc.user.role.update,adc.user.role.delete,adc.user.role.empower,adc.user.personAndUser,adc.user.personAndUser.list,adc.user.personAndUser.create,adc.user.personAndUser.update,adc.user.personAndUser.invite,adc.user.personAndUser.remove,adc.user.personAndUser.addOrgsAndSitesAndProductsAndRoles,adc.user.personAndUser.removeOrgsAndSitesAndProductsAndRoles,adc.user.usergroup,adc.user.usergroup.list,adc.user.usergroup.create,adc.user.usergroup.update,adc.user.usergroup.delete,adc.user.usergroup.addOrRemoveUser
+
+#简单注册时使用的EAM试用角色资源
+eamTrialRoleResCodeList: eam.common,eam.common.index,eam.common.index.dashboard,eam.common.index.sitelist,eam.common.task,eam.common.settings,,eam.pro,eam.pro.equipment,eam.pro.equipment.asset,eam.pro.equipment.location,eam.pro.maintenance,eam.pro.maintenance.maintenance,eam.pro.maintenance.jobstandard,eam.pro.maintenance.workorder,eam.pro.matterrepair,eam.pro.matterrepair.repair,eam.pro.matterrepair.dispatch,eam.pro.patrol,eam.pro.environmental,eam.pro.materia
+
+#简单注册时使用的流程
+processList: construction2.bpmn20.xml,contract2.bpmn20.xml,defectDocument2.bpmn20.xml,defectOrder2.bpmn20.xml,dispatchOrder2.bpmn20.xml,headquartersDaliyTask2.bpmn20.xml,patrolOrder2.bpmn20.xml,repairOrder2.bpmn20.xml,workOrder2.bpmn20.xml
+
+#简单注册时使用的编码规则
+codeGeneratorList: -,NULL,qrCode,QR@End@-,AutoGeneratorCodeService_Asset,asset,ASSET@End@-,AutoGeneratorCodeService_Location,location,LOC@End@-,AutoGeneratorCodeService_DefectOrder,ybtz_asset,YB@End@-,AutoGeneratorCodeService_Wo,wo,WO@End@-,AutoGeneratorCodeService_Job,job,JP@End@-,AutoGeneratorCodeService_Pm,pm,PM@End@-,AutoGeneratorCodeService_Repair,repair,RP@End@-,AutoGeneratorCodeService_Dispatch,dispatch,DO@End@-,AutoGeneratorCodeService_Patrolpoint,patrolpoint,PT@End@-,AutoGeneratorCodeService_Patrolorder,patrolorder,PO@End@-,AutoGeneratorCodeService_Patrolroute,patrolroute,PR@End@-,AutoGeneratorCodeService_Patrolplan,patrolplan,PP@End@-,AutoGeneratorCodeService_Daliy,daily,DY@End@-,AutoGeneratorCodeService_Asset,hjjc_asset,EA@End@-,AutoGeneratorCodeService_Item,item,IT@End@-,AutoGeneratorCodeService_Invuse,invuse,IV@End@-,AutoGeneratorCodeService_Receive,receive,RC@End@-,AutoGeneratorCodeService_DefectDocument,defectdocument,QX@End@-,AutoGeneratorCodeService_DefectOrder,defectorder,ZG@End@-,AutoGeneratorCodeService_DefectDocument,hq_zbjp,HQJP@End@-,AutoGeneratorCodeService_DefectDocument,hq_jp,LX@End@-,AutoGeneratorCodeService_DefectDocument,headquartersDaliyTask,DT@End@-,AutoGeneratorCodeService_DefectOrder,archives,DA@End@-,AutoGeneratorCodeService_Contract,contract,HT@End@-,AutoGeneratorCodeService_Construction,construction,SG

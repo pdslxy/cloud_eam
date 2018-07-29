@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.AssetEnergyPriceDao">
+
+
+	<select id="findEnergyPrices" resultType="map" parameterType="map">
+		<include refid="select_columns"></include>
+		<include refid="where_columns"></include>
+		<include refid="order"></include>
+	</select>
+
+	<sql id="select_columns">
+	SELECT
+	e.id,
+	e.create_date as createDate,
+	e.price,
+	e.price_unit as priceUnit,
+	e.trough_price as troughPrice,
+	e.crest_price crestPrice,
+	e.`status`,
+	e.site_id as siteId,
+	e.org_id as orgId,
+	e.fill_form_id as fillFormId,
+	e.creator
+FROM
+	eam_energyprice e
+	</sql>
+
+
+
+	<sql id="where_columns">
+		where 1=1
+		<if test="id !=null">
+			and e.id = #{id}
+		</if>
+		<if test="status !=null">
+			and e.status = #{status}
+		</if>
+		<if test="creator!=null">
+			and e.creator = #{creator}
+		</if>
+
+		<if test="createDate!=null">
+			and e.create_date = #{createDate}
+		</if>
+		<!--<if test="price!=null">-->
+			<!--and e.price = #{price}-->
+		<!--</if>-->
+		<if test="priceUnit !=null">
+			and e.price_unit = #{priceUnit}
+		</if>
+		<if test="fillFormId !=null">
+			and e.fill_form_id = #{fillFormId}
+		</if>
+
+		<if test="siteId!=null">
+			and e.site_id = #{siteId}
+		</if>
+		<if test="orgId!=null">
+			and e.org_id = #{orgId}
+		</if>
+		<!--<if test="troughPrice!=null">-->
+			<!--and e.troughprice = #{troughPrice}-->
+		<!--</if>-->
+
+		<!--<if test="crestPrice!=null">-->
+			<!--and e.crestprice = #{crestPrice}-->
+		<!--</if>-->
+
+		<if test="priceUnit!=null">
+			and e.priceunit = #{priceUnit}
+		</if>
+
+		<!--<if test="udpp !=null">-->
+			<!--and item.udpp = #{udpp}-->
+		<!--</if>-->
+		<!--<if test="issueunitId !=null">-->
+			<!--and item.issueunit_id = #{issueunitId }-->
+		<!--</if>-->
+		<!--<if test="orderunitId !=null">-->
+			<!--and item.orderunit_id = #{orderunitId }-->
+		<!--</if>-->
+		<!--<if test="starttime!=null">-->
+			<!--and item.create_time &gt; #{starttime}-->
+		<!--</if>-->
+		<!--<if test="endtime!=null">-->
+			<!--and item.create_time &lt; #{endtime}-->
+		<!--</if>-->
+		<if test="words!=null">
+			and
+			<foreach collection="words" item="word" index="index" close=""
+				open="" separator=" and ">
+				(e.fill_form_id like concat('%',#{word},'%') or
+				e.price_unit like concat('%',#{word},'%') or e.price like
+				concat('%',#{word},'%') or e.status like concat('%',#{word},'%')
+				or e.crest_price like concat('%',#{word},'%') or e.trough_price like concat('%',#{word},'%'))
+			</foreach>
+		</if>
+
+	</sql>
+
+	<sql id="order">
+		<choose>
+			<when test="sorts != null ">
+				order by ${sorts}
+			</when>
+			<otherwise>
+				order by id
+			</otherwise>
+		</choose>
+		<if test=" order != null and ( order=='desc' or  order=='asc')">
+			${order}
+		</if>
+	</sql>
+
+
+</mapper>

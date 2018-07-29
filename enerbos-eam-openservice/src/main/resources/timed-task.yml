@@ -1,0 +1,7 @@
+#定时任务配置
+timedTask:
+     # cron配置
+     cron:
+               maintenencePlan: "0 01 01 * * ? * "  #预防性维护计划
+               planDaily: "0 01 01 * * ? *"         #例行工作单
+               patrolPlan: "0 0 0/1 * * ?"  # 巡检

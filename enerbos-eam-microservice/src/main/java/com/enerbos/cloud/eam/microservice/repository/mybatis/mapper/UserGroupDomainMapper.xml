@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.UserGroupDomainDao">
+
+    <select id="findUserGroupDimain" resultType="com.enerbos.cloud.eam.vo.UserGroupDomainVo" parameterType="map">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+        <include refid="order"></include>
+    </select>
+
+    <sql id="select_columns">
+	SELECT
+    e.`id`  as id,
+    e.`createtime` as createtime,
+    e.`creator` as creator,
+    e.`description`  as description,
+    e.`domain_value`  as domainValue,
+    e.`domainvalue_id`  as domainValueId,
+    e.`org_id`  as orgId,
+    e.`site_id` as siteId,
+    e.`status`  as status,
+    e.`usergroup_id`  as userGroupId,
+    e.`domain_id`  as domainId,
+    e.`domain_num` as domainNum,
+    e.`association_type` as associationType
+FROM
+	eam_usergroup_domain e
+	</sql>
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="domainId !=null ">
+            and e.domain_id = #{domainId}
+        </if>
+        <if test="domainNum !=null">
+            and e.domain_num = #{domainNum}
+        </if>
+        <if test="associationType !=null">
+            and e.association_type = #{associationType}
+        </if>
+        <if test="id !=null ">
+            and e.id = #{id}
+        </if>
+        <if test="status !=null">
+            and e.status = #{status}
+        </if>
+        <if test="creator!=null">
+            and e.creator = #{creator}
+        </if>
+        <if test="siteId!=null">
+            and (e.site_id = #{siteId} OR e.site_id='ALL')
+        </if>
+        <if test="orgId!=null">
+            and (e.org_id = #{orgId} OR e.org_id='ALL')
+        </if>
+
+        <if test="createDate!=null">
+            and e.createtime = #{createtime}
+        </if>
+
+        <if test="domainValue!=null">
+            and e.domain_value = #{domainValue}
+        </if>
+        <if test="domainId!=null and domainId.length !=0 and domainId !='' ">
+            AND e.domainvalue_id in
+            <foreach item="id" index="index" collection="domainId" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+
+
+        <!--<if test="word!=null and word!='' ">-->
+            <!--and-->
+            <!--<foreach collection="wordsList" item="word" index="index" close=")"-->
+                     <!--open="(" separator=" or ">-->
+                <!--(e.description like concat('%',#{word},'%')-->
+                <!--or e.status like concat('%',#{word},'%')-->
+                <!--or e.creator like concat('%',#{word},'%') )-->
+            <!--</foreach>-->
+        <!--</if>-->
+    </sql>
+
+    <sql id="order">
+        <choose>
+            <when test="sorts != null and sorts!='' ">
+                order by ${sorts}
+            </when>
+            <otherwise>
+                order by createtime
+            </otherwise>
+        </choose>
+        <if test=" order != null and ( order=='desc' or  order=='asc')">
+            ${order}
+        </if>
+    </sql>
+
+    <select id="findOne" parameterType="String" resultType="com.enerbos.cloud.eam.vo.UserGroupDomainVo">
+        <include refid="select_columns" />
+        WHERE id = #{id}
+    </select>
+    <select id="findUserGroupDomainByDomainValueAndDomainNum" parameterType="map" resultType="com.enerbos.cloud.eam.vo.UserGroupDomainVo">
+        <include refid="select_columns" />
+        <include refid="where_columns"></include>
+    </select>
+
+</mapper>

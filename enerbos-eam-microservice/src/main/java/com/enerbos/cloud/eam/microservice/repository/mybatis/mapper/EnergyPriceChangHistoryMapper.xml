@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.EnergyPriceChangHistoryDao">
+
+
+	<select id="findEnergyPriceChangHistory" resultType="map" parameterType="map">
+		<include refid="select_columns"></include>
+		<include refid="where_columns"></include>
+		<include refid="order"></include>
+	</select>
+
+	<select id="findMaxCreateDatePriceChangHistoryById" parameterType="String" resultType="com.enerbos.cloud.eam.vo.EnergyPriceChangHistoryVo">
+		<include refid="select_MaxCreate_Columns"/>
+		WHERE enery_price_id = #{eneryPriceId}
+	</select>
+
+	<sql id="select_columns">
+	SELECT
+	  e.id as id,
+	  e.create_user as createUser,
+	  e.create_date as createDate,
+	  e.update_date as updateDate,
+	  e.chang_price_after as changPriceAfter ,
+	  e.chang_price_before as changPriceBefore,
+	  e.enery_price_id as eneryPriceId,
+	  e.org_id as orgId,
+	  e.site_id as siteId
+FROM
+	eam_energyprice_chang_history e
+	</sql>
+
+	<sql id="select_MaxCreate_Columns">
+		SELECT
+		e.id as id,
+		MAX(e.create_date) as createDate,
+		e.create_user as createUser,
+		e.update_date as updateDate,
+		e.chang_price_after as changPriceAfter ,
+		e.chang_price_before as changPriceBefore,
+		e.enery_price_id as eneryPriceId,
+		e.org_id as orgId,
+		e.site_id as siteId
+		FROM
+		eam_energyprice_chang_history e
+	</sql>
+
+
+
+	<sql id="where_columns">
+		where 1=1
+		<if test="id !=null">
+			and e.id = #{id}
+		</if>
+
+		<if test="createDate!=null">
+			and e.createdate = #{createDate}
+		</if>
+		<if test="siteId!=null">
+			and e.site_id = #{siteId}
+		</if>
+		<if test="orgId!=null">
+			and e.org_id = #{orgId}
+		</if>
+		<if test="eneryPriceId!=null">
+			and enery_price_id = #{eneryPriceId}
+		</if>
+
+
+	</sql>
+
+	<sql id="order">
+		order by
+		<choose>
+			<when test="sorts != null and sorts.length > 0">
+				${sorts}
+			</when>
+			<otherwise>
+				create_user
+			</otherwise>
+		</choose>
+		<choose>
+			<when test="order != null and (order=='desc' or order=='asc')">
+				${order}
+			</when>
+			<otherwise>
+				DESC
+			</otherwise>
+		</choose>
+	</sql>
+
+
+</mapper>

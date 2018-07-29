@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceWorkOrderActualItemDao">
+	
+	<!-- 查询字段公共sql -->
+	<sql id="selectAllColumns">
+		<![CDATA[
+		SELECT
+			 id as id, 
+			 item_desc as itemDesc, 
+			 flag as flag,
+			 item_id as itemId,
+			 item_num as itemNum, 
+			 item_qty as itemQty, 
+			 item_unit as itemUnit,
+			 store_room_id as storeRoomId, 
+			 work_order_id as workOrderId,
+			 update_date as updateDate,
+			 create_user as createUser,
+			 create_date as createDate
+			FROM eam_work_order_actual_item actualItem
+		]]>
+	</sql>
+
+	<select id="findActualitemByWorkOrderId" parameterType="String" resultType="com.enerbos.cloud.eam.microservice.domain.MaintenanceWorkOrderActualItem">
+		<include refid="selectAllColumns" />
+		where actualItem.work_order_id = #{workOrderId}
+	</select>
+
+	<select id="findItemIdByAssetId" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT DISTINCT item_id FROM eam_work_order_actual_item actualItem,eam_work_order_asset orderAsset
+		where orderAsset.work_order_id=actualItem.work_order_id
+		and orderAsset.asset_id = #{assetId}
+	</select>
+</mapper>

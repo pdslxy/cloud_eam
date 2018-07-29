@@ -1,0 +1,12 @@
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://enerbos-cloud-discovery-service:9001/eureka/
+
+
+spring:
+  datasource:
+    url: jdbc:mysql://rdsm7x690fkuw256s82m.mysql.rds.aliyuncs.com/ec_eam?useUnicode=true&characterEncoding=utf-8
+    username: ec_eam
+    password: eam,admin,123

@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.HeadquartersDailyDao" >
+  <sql id="Base_Column_List" >
+    id, plan_num as planNum,headquarters_plan_id as headquartersPlanId,
+    plan_name as planName, nature, status, check_item as checkItem ,
+     valid_start_date as validStartDate, valid_end_date as validEndDate,
+    org_id as orgId, site_id as siteId, check_frequency as checkFrequency,
+     times, frequency, work_type as workType, start_date as startDate,
+     deadline,description,create_date as createDate, create_user as createUser
+  </sql>
+
+  <sql id="Base_Where_Column">
+    <if test="planNum != null">
+      AND plan_num = #{planNum}
+    </if>
+    <if test="planName">
+      AND plan_name LIKE concat('%',#{planName},'%')
+    </if>
+    <if test="description != null">
+      AND description LIKE concat('%',#{description},'%')
+    </if>
+
+    <if test = "status != null  and !status.isEmpty()">
+      AND status IN
+      <foreach collection="status" item="statuss" index="index" open="(" separator=" , " close=")">
+        #{statuss}
+      </foreach>
+    </if>
+    <if test = "nature != null  and !nature.isEmpty()">
+      and nature IN
+      <foreach collection="nature" item="natures" index="index" open="(" separator=" , " close=")">
+        #{natures}
+      </foreach>
+    </if>
+    <if test = "checkItem != null and  !checkItem.isEmpty()">
+      and check_item IN
+      <foreach collection="checkItem" item="checkItems" index="index" open="(" separator=" , " close=")">
+        #{checkItems}
+      </foreach>
+    </if>
+    <if test="validStartDate != null and validEndDate==null">
+      and valid_start_date = #{validStartDate}
+    </if>
+    <if test="validStartDate == null and validEndDate!=null">
+      and valid_end_date = #{validEndDate}
+    </if>
+    <if test="validStartDate != null and validEndDate!=null">
+      and validStartDate &lt;= #{validStartDate} AND  validEndDate &gt;= #{validStartDate}
+    </if>
+
+    <if test="checkFrequency != null">
+      and check_frequency = #{checkFrequency}
+    </if>
+    <if test="times != null">
+      AND times = #{times}
+    </if>
+    <if test="frequency != null">
+      AND frequency = #{frequency}
+    </if>
+    <if test="workType != null">
+      AND work_type = #{workType}
+    </if>
+    <if test="startDate != null">
+      AND start_date = #{startDate}
+    </if>
+    <if test="deadline != null">
+      AND deadline = #{deadline}
+    </if>
+    <if test="orgId != null">
+      AND org_id = #{orgId}
+    </if>
+    <if test="siteId != null">
+    AND site_id = #{siteId}
+  </if>
+    <if test="headquartersPlanId != null">
+      AND headquarters_plan_id = #{headquartersPlanId}
+    </if>
+    <if test="words!=null and words!=''">
+      and
+      <foreach collection="words" item="word" index="index" close=""
+               open="" separator=" and ">
+        ( plan_name like concat('%',#{word},'%')
+        or plan_num like concat('%',#{word},'%')
+        or description like concat('%',#{word},'%'))
+      </foreach>
+    </if>
+
+  </sql>
+  <sql id="order">
+    order by
+    <choose>
+      <when test="sorts != null and sorts.length > 0">
+        ${sorts}
+      </when>
+      <otherwise>
+        createDate
+      </otherwise>
+    </choose>
+    <choose>
+      <when test="order != null and (order=='desc' or order=='asc')">
+        ${order}
+      </when>
+      <otherwise>
+        DESC
+      </otherwise>
+    </choose>
+  </sql>
+  <select id="selectByPrimaryKey" resultType="com.enerbos.cloud.eam.vo.HeadquartersDailyVo" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from eam_headquarters_daily
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="findListByFilter" resultType="com.enerbos.cloud.eam.vo.HeadquartersDailyVo">
+    SELECT
+      <include refid="Base_Column_List"/>
+    FROM eam_headquarters_daily
+    WHERE 1=1
+      <include refid="Base_Where_Column"/>
+    <include refid="order"/>
+  </select>
+  <select id="findListByIds" resultType="com.enerbos.cloud.eam.vo.HeadquartersDailyVo">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM eam_headquarters_daily
+    WHERE id in
+    <foreach collection="ids" item="id" index="index" open="(" separator=" , " close=")">
+      #{id,jdbcType=VARCHAR}
+    </foreach>
+  </select>
+  <select id="findAll" resultType="com.enerbos.cloud.eam.vo.HeadquartersDailyVo">
+    SELECT
+    <include refid="Base_Column_List"/>
+    FROM eam_headquarters_daily
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from eam_headquarters_daily
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDaily" >
+    insert into eam_headquarters_daily (id, plan_num, plan_name, 
+      nature, status, check_item, 
+      valid_start_date, valid_end_date, org_id, 
+      site_id, check_frequency, times, 
+      frequency, work_type, start_date, 
+      deadline, description)
+    values (#{id,jdbcType=VARCHAR}, #{planNum,jdbcType=VARCHAR}, #{planName,jdbcType=VARCHAR}, 
+      #{nature,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{checkItem,jdbcType=VARCHAR}, 
+      #{validStartDate,jdbcType=TIMESTAMP}, #{validEndDate,jdbcType=TIMESTAMP}, #{orgId,jdbcType=VARCHAR}, 
+      #{siteId,jdbcType=VARCHAR}, #{checkFrequency,jdbcType=VARCHAR}, #{times,jdbcType=BIGINT}, 
+      #{frequency,jdbcType=VARCHAR}, #{workType,jdbcType=VARCHAR}, #{startDate,jdbcType=TIMESTAMP}, 
+      #{deadline,jdbcType=BIGINT}, #{description,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDaily" >
+    insert into eam_headquarters_daily
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="planNum != null" >
+        plan_num,
+      </if>
+      <if test="planName != null" >
+        plan_name,
+      </if>
+      <if test="nature != null" >
+        nature,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="checkItem != null" >
+        check_item,
+      </if>
+      <if test="validStartDate != null" >
+        valid_start_date,
+      </if>
+      <if test="validEndDate != null" >
+        valid_end_date,
+      </if>
+      <if test="orgId != null" >
+        org_id,
+      </if>
+      <if test="siteId != null" >
+        site_id,
+      </if>
+      <if test="checkFrequency != null" >
+        check_frequency,
+      </if>
+      <if test="times != null" >
+        times,
+      </if>
+      <if test="frequency != null" >
+        frequency,
+      </if>
+      <if test="workType != null" >
+        work_type,
+      </if>
+      <if test="startDate != null" >
+        start_date,
+      </if>
+      <if test="deadline != null" >
+        deadline,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="planNum != null" >
+        #{planNum,jdbcType=VARCHAR},
+      </if>
+      <if test="planName != null" >
+        #{planName,jdbcType=VARCHAR},
+      </if>
+      <if test="nature != null" >
+        #{nature,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="checkItem != null" >
+        #{checkItem,jdbcType=VARCHAR},
+      </if>
+      <if test="validStartDate != null" >
+        #{validStartDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validEndDate != null" >
+        #{validEndDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="orgId != null" >
+        #{orgId,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null" >
+        #{siteId,jdbcType=VARCHAR},
+      </if>
+      <if test="checkFrequency != null" >
+        #{checkFrequency,jdbcType=VARCHAR},
+      </if>
+      <if test="times != null" >
+        #{times,jdbcType=BIGINT},
+      </if>
+      <if test="frequency != null" >
+        #{frequency,jdbcType=VARCHAR},
+      </if>
+      <if test="workType != null" >
+        #{workType,jdbcType=VARCHAR},
+      </if>
+      <if test="startDate != null" >
+        #{startDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deadline != null" >
+        #{deadline,jdbcType=BIGINT},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDaily" >
+    update eam_headquarters_daily
+    <set >
+      <if test="planNum != null" >
+        plan_num = #{planNum,jdbcType=VARCHAR},
+      </if>
+      <if test="planName != null" >
+        plan_name = #{planName,jdbcType=VARCHAR},
+      </if>
+      <if test="nature != null" >
+        nature = #{nature,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="checkItem != null" >
+        check_item = #{checkItem,jdbcType=VARCHAR},
+      </if>
+      <if test="validStartDate != null" >
+        valid_start_date = #{validStartDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validEndDate != null" >
+        valid_end_date = #{validEndDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="orgId != null" >
+        org_id = #{orgId,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null" >
+        site_id = #{siteId,jdbcType=VARCHAR},
+      </if>
+      <if test="checkFrequency != null" >
+        check_frequency = #{checkFrequency,jdbcType=VARCHAR},
+      </if>
+      <if test="times != null" >
+        times = #{times,jdbcType=BIGINT},
+      </if>
+      <if test="frequency != null" >
+        frequency = #{frequency,jdbcType=VARCHAR},
+      </if>
+      <if test="workType != null" >
+        work_type = #{workType,jdbcType=VARCHAR},
+      </if>
+      <if test="startDate != null" >
+        start_date = #{startDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deadline != null" >
+        deadline = #{deadline,jdbcType=BIGINT},
+      </if>
+      <if test="description != null" >
+        description = #{description,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDaily" >
+    update eam_headquarters_daily
+    set plan_num = #{planNum,jdbcType=VARCHAR},
+      plan_name = #{planName,jdbcType=VARCHAR},
+      nature = #{nature,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      check_item = #{checkItem,jdbcType=VARCHAR},
+      valid_start_date = #{validStartDate,jdbcType=TIMESTAMP},
+      valid_end_date = #{validEndDate,jdbcType=TIMESTAMP},
+      org_id = #{orgId,jdbcType=VARCHAR},
+      site_id = #{siteId,jdbcType=VARCHAR},
+      check_frequency = #{checkFrequency,jdbcType=VARCHAR},
+      times = #{times,jdbcType=BIGINT},
+      frequency = #{frequency,jdbcType=VARCHAR},
+      work_type = #{workType,jdbcType=VARCHAR},
+      start_date = #{startDate,jdbcType=TIMESTAMP},
+      deadline = #{deadline,jdbcType=BIGINT},
+      description = #{description,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDaily" >
+    update eam_headquarters_daily
+    set plan_num = #{planNum,jdbcType=VARCHAR},
+      plan_name = #{planName,jdbcType=VARCHAR},
+      nature = #{nature,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      check_item = #{checkItem,jdbcType=VARCHAR},
+      valid_start_date = #{validStartDate,jdbcType=TIMESTAMP},
+      valid_end_date = #{validEndDate,jdbcType=TIMESTAMP},
+      org_id = #{orgId,jdbcType=VARCHAR},
+      site_id = #{siteId,jdbcType=VARCHAR},
+      check_frequency = #{checkFrequency,jdbcType=VARCHAR},
+      times = #{times,jdbcType=BIGINT},
+      frequency = #{frequency,jdbcType=VARCHAR},
+      work_type = #{workType,jdbcType=VARCHAR},
+      start_date = #{startDate,jdbcType=TIMESTAMP},
+      deadline = #{deadline,jdbcType=BIGINT}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="upStatusByIds" parameterType="com.enerbos.cloud.eam.vo.HeadquartersDailyVoForUpStatus">
+    UPDATE eam_headquarters_daily
+    SET status = #{status,jdbcType=VARCHAR}
+    where id in
+    <foreach collection="ids" item="id" index="index" open="(" separator=" , " close=")">
+      #{id,jdbcType=VARCHAR}
+    </foreach>
+  </update>
+</mapper>

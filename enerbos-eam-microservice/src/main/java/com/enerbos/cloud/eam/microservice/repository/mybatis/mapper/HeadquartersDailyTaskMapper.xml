@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.HeadquartersDailyTaskDao" >
+  <sql id="Base_Column_List" >
+    id, task_num, status, plan_num, check_item, org_id, site_id, task_property,
+    create_date, estimate_date, executor
+  </sql>
+  <sql id="Blob_Column_List" >
+    description, summary
+  </sql>
+  <select id="selectByPrimaryKey" resultType="com.enerbos.cloud.eam.vo.HeadquartersDailyTaskVo" parameterType="java.lang.String" >
+    <include refid="selectAllColumns" />
+    WHERE id = #{id}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from eam_headquarters_daily_task
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <!--例行工作单分页查询-->
+  <select id="findListByFilter" parameterType="map" resultType="com.enerbos.cloud.eam.vo.HeadquartersDailyTaskVo">
+    <include refid="selectAllColumns"/>
+    <include refid="Base_Where_Column"/>
+    <include refid="order"/>
+  </select>
+  <!-- 查询字段公共sql -->
+  <sql id="selectAllColumns">
+		SELECT
+			id as id,
+            task_num as taskNum,
+            description as description,
+            status as status,
+             plan_Id as planId,
+            plan_num as planNum,
+            check_item as checkItem,
+            org_id as orgId,
+            site_id as siteId,
+            task_property as  taskProperty,
+            create_date as createDate,
+            estimate_date as estimateDate,
+            summary as summary,
+            task_name as taskName,
+            work_type as  workType,
+            actual_date as actualDate,
+            process_id as processInstanceId,
+            dispatch_person_id as  dispatchPersonId,
+            report_person_id as reportPersonId,
+            create_user as createUser,
+             receiver_person_id as receiverPersonId
+			FROM eam_headquarters_daily_task
+  </sql>
+
+  <sql id="Base_Where_Column">
+     where 1=1
+    <if test="planNum != null">
+      AND plan_num = #{planNum}
+    </if>
+    <if test="planId!= null">
+      AND plan_id = #{planId}
+    </if>
+
+    <if test="description != null">
+      AND description LIKE concat('%',#{description},'%')
+    </if>
+    <if test = "status != null and  !status.isEmpty()">
+      and status IN
+      <foreach collection="status" item="statuss" index="index" open="(" separator=" , " close=")">
+        #{statuss}
+      </foreach>
+    </if>
+    <if test = "checkItem != null and  !checkItem.isEmpty()">
+      and check_item IN
+      <foreach collection="checkItem" item="checkItems" index="index" open="(" separator=" , " close=")">
+        #{checkItems}
+      </foreach>
+    </if>
+    <if test = "taskProperty != null and  !taskProperty.isEmpty()">
+      and taskProperty IN
+      <foreach collection="taskProperty" item="taskPropertys" index="index" open="(" separator=" , " close=")">
+        #{taskPropertys}
+      </foreach>
+    </if>
+
+    <if test = "executor != null and  !executor.isEmpty()">
+      and  (SELECT COUNT(1)  from eam_order_person  WHERE field_type=#{field_type}
+       person_Id IN
+      <foreach collection="executor" item="executors" index="index" open="(" separator=" , " close=")">
+        #{executors}
+      </foreach>
+      AND order_id=eam_headquarters_daily_task.id)>0
+    </if>
+
+    <if test="createDateBegin != null">
+      AND create_date &lt;= #{createDateBegin}
+    </if>
+    <if test="createDateEnd!=null">
+      AND create_date &gt;= #{createDateEnd}
+    </if>
+
+    <if test="estimateDateBegin != null">
+      AND estimate_date &lt;= #{estimate_date}
+    </if>
+    <if test="estimateDateEnd!=null">
+      AND estimate_date &gt;= #{estimate_date}
+    </if>
+
+    <if test="actualDateBegin != null">
+      AND actual_date &lt;= #{actualDateBegin}
+    </if>
+    <if test="actualDateEnd!=null">
+      AND actual_date &gt;= #{actualDateEnd}
+    </if>
+
+
+    <if test="orgId != null">
+      AND org_id = #{orgId}
+    </if>
+    <if test="siteId != null">
+      AND site_id = #{siteId}
+    </if>
+    <if test="words!=null and words!=''">
+      and
+      <foreach collection="words" item="word" index="index" close=""  open="" separator=" and ">
+        ( plan_num like concat('%',#{word},'%')
+        or task_name like concat('%',#{word},'%')
+        or check_item like concat('%',#{word},'%')
+        or description like concat('%',#{word},'%')
+        or task_num like concat('%',#{word},'%'))
+      </foreach>
+    </if>
+  </sql>
+  <sql id="order">
+    order by
+    <choose>
+      <when test="sorts != null and sorts.length > 0">
+        ${sorts}
+      </when>
+      <otherwise>
+        createDate
+      </otherwise>
+    </choose>
+    <choose>
+      <when test="order != null and (order=='desc' or order=='asc')">
+        ${order}
+      </when>
+      <otherwise>
+        DESC
+      </otherwise>
+    </choose>
+  </sql>
+  <insert id="insert" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDailyTask" >
+    insert into eam_headquarters_daily_task (id, task_num, status, 
+      plan_num, check_item,
+      org_id, site_id, task_property, 
+      create_date, estimate_date,
+      description, execute_unit, summary
+      )
+    values (#{id,jdbcType=VARCHAR}, #{taskNum,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
+      #{planNum,jdbcType=VARCHAR}, #{planName,jdbcType=VARCHAR}, #{checkItem,jdbcType=VARCHAR}, 
+      #{orgId,jdbcType=VARCHAR}, #{siteId,jdbcType=VARCHAR}, #{taskProperty,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=TIMESTAMP}, #{estimateDate,jdbcType=TIMESTAMP},
+      #{description,jdbcType=LONGVARCHAR}, #{executeUnit,jdbcType=LONGVARCHAR}, #{summary,jdbcType=LONGVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDailyTask" >
+    insert into eam_headquarters_daily_task
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="taskNum != null" >
+        task_num,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="planNum != null" >
+        plan_num,
+      </if>
+
+      <if test="checkItem != null" >
+        check_item,
+      </if>
+      <if test="orgId != null" >
+        org_id,
+      </if>
+      <if test="siteId != null" >
+        site_id,
+      </if>
+      <if test="taskProperty != null" >
+        task_property,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+      <if test="estimateDate != null" >
+        estimate_date,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+      <if test="executeUnit != null" >
+        execute_unit,
+      </if>
+      <if test="summary != null" >
+        summary,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="taskNum != null" >
+        #{taskNum,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="planNum != null" >
+        #{planNum,jdbcType=VARCHAR},
+      </if>
+      <if test="planName != null" >
+        #{planName,jdbcType=VARCHAR},
+      </if>
+      <if test="checkItem != null" >
+        #{checkItem,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null" >
+        #{orgId,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null" >
+        #{siteId,jdbcType=VARCHAR},
+      </if>
+      <if test="taskProperty != null" >
+        #{taskProperty,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="estimateDate != null" >
+        #{estimateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="executeUnit != null" >
+        #{executeUnit,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="summary != null" >
+        #{summary,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDailyTask" >
+    update eam_headquarters_daily_task
+    <set >
+      <if test="taskNum != null" >
+        task_num = #{taskNum,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="planNum != null" >
+        plan_num = #{planNum,jdbcType=VARCHAR},
+      </if>
+
+      <if test="checkItem != null" >
+        check_item = #{checkItem,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null" >
+        org_id = #{orgId,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null" >
+        site_id = #{siteId,jdbcType=VARCHAR},
+      </if>
+      <if test="taskProperty != null" >
+        task_property = #{taskProperty,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="estimateDate != null" >
+        estimate_date = #{estimateDate,jdbcType=TIMESTAMP},
+      </if>
+
+      <if test="description != null" >
+        description = #{description,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="executeUnit != null" >
+        execute_unit = #{executeUnit,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="summary != null" >
+        summary = #{summary,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDailyTask" >
+    update eam_headquarters_daily_task
+    set task_num = #{taskNum,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      plan_num = #{planNum,jdbcType=VARCHAR},
+      check_item = #{checkItem,jdbcType=VARCHAR},
+      org_id = #{orgId,jdbcType=VARCHAR},
+      site_id = #{siteId,jdbcType=VARCHAR},
+      task_property = #{taskProperty,jdbcType=VARCHAR},
+      create_date = #{createDate,jdbcType=TIMESTAMP},
+      estimate_date = #{estimateDate,jdbcType=TIMESTAMP},
+      description = #{description,jdbcType=LONGVARCHAR},
+      execute_unit = #{executeUnit,jdbcType=LONGVARCHAR},
+      summary = #{summary,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersDailyTask" >
+    update eam_headquarters_daily_task
+    set task_num = #{taskNum,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      plan_num = #{planNum,jdbcType=VARCHAR},
+      check_item = #{checkItem,jdbcType=VARCHAR},
+      org_id = #{orgId,jdbcType=VARCHAR},
+      site_id = #{siteId,jdbcType=VARCHAR},
+      task_property = #{taskProperty,jdbcType=VARCHAR},
+      create_date = #{createDate,jdbcType=TIMESTAMP},
+      estimate_date = #{estimateDate,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

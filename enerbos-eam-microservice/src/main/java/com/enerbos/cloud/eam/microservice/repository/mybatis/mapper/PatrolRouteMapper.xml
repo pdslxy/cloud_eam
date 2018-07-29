@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.PatrolRouteDao">
+
+
+    <select id="findPatrolRouteListByFilters" resultType="map" parameterType="map">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+    </select>
+
+    <sql id="select_columns">
+        SELECT DISTINCT
+        pr.id,
+        pr.patrolroutenum patrolRouteNum,
+        pr.description,
+        pr.remark,
+        pr.status,
+        pr.type,
+        pr.statusdate,
+        pr.createtime,
+        pr.updatetime,
+        pr.orgid orgId,
+        pr.siteid siteId
+        FROM
+        patrol_route pr
+        <if test="personId != null and personId != ''">
+            ,patrol_rf_collector prc
+        </if>
+    </sql>
+
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="id !=null">
+            and pr.id = #{id}
+        </if>
+        <if test="patrolRouteNum !=null">
+            and pr.patrolroutenum = #{patrolRouteNum}
+        </if>
+        <if test="createtime!=null">
+            and pr.createtime = #{createtime}
+        </if>
+        <if test="description !=null">
+            and pr.description = #{description}
+        </if>
+        <if test="isqrcode !=null">
+            and pr.isqrcode = #{isqrcode}
+        </if>
+        <if test="status != null and status.size()>0">
+            and pr.status in
+            <foreach collection="status" item="statu" index="index" open="(" separator=" , " close=")">
+                #{statu}
+            </foreach>
+        </if>
+        <if test="type != null and type.size()>0">
+            and pr.type in
+            <foreach collection="type" item="t" index="index" open="(" separator=" , " close=")">
+                #{t}
+            </foreach>
+        </if>
+        <if test="updatetime !=null">
+            and pr.updatetime = #{updatetime}
+        </if>
+        <if test="siteId!=null">
+            and pr.siteid = #{siteId}
+        </if>
+        <if test="orgId!=null">
+            and pr.orgid = #{orgId}
+        </if>
+        <if test="words!=null and words!=''">
+            and
+            <foreach collection="words" item="word" index="index" close=""
+                     open="" separator=" and ">
+                (pr.patrolroutenum like concat('%',#{word},'%')
+                or pr.description like concat('%',#{word},'%'))
+            </foreach>
+        </if>
+        <if test="personId != null and personId != ''">
+            and pr.id = prc.collect_id
+            and prc.person_id = #{personId}
+            and prc.type = 'patrolRoute'
+        </if>
+        <choose>
+            <when test="sorts !=null and sorts !=''">
+                order by  pr.${sorts}
+            </when>
+            <otherwise>
+                order by pr.createtime Desc
+            </otherwise>
+        </choose>
+    </sql>
+
+
+</mapper>

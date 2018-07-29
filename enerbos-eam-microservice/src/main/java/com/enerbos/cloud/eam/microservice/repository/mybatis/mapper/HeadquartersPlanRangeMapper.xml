@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.HeadquartersPlanRangeDao" >
+  <sql id="Base_Column_List" >
+    id, plan_id as planId, site_id as siteId, org_id as orgId
+  </sql>
+  <select id="selectByPrimaryKey" resultType="com.enerbos.cloud.eam.vo.HeadquartersPlanRangeVo" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from eam_headquarters_plan_range
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="getSiteListByPlanId" resultType="java.lang.String">
+    select
+    site_id as siteId
+    from eam_headquarters_plan_range
+    where plan_id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from eam_headquarters_plan_range
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersPlanRange" >
+    insert into eam_headquarters_plan_range (id, plan_id, site_id, 
+      org_id)
+    values (#{id,jdbcType=VARCHAR}, #{planId,jdbcType=VARCHAR}, #{siteId,jdbcType=VARCHAR}, 
+      #{orgId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersPlanRange" >
+    insert into eam_headquarters_plan_range
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="planId != null" >
+        plan_id,
+      </if>
+      <if test="siteId != null" >
+        site_id,
+      </if>
+      <if test="orgId != null" >
+        org_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="planId != null" >
+        #{planId,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null" >
+        #{siteId,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null" >
+        #{orgId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersPlanRange" >
+    update eam_headquarters_plan_range
+    <set >
+      <if test="planId != null" >
+        plan_id = #{planId,jdbcType=VARCHAR},
+      </if>
+      <if test="siteId != null" >
+        site_id = #{siteId,jdbcType=VARCHAR},
+      </if>
+      <if test="orgId != null" >
+        org_id = #{orgId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.enerbos.cloud.eam.microservice.domain.HeadquartersPlanRange" >
+    update eam_headquarters_plan_range
+    set plan_id = #{planId,jdbcType=VARCHAR},
+      site_id = #{siteId,jdbcType=VARCHAR},
+      org_id = #{orgId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

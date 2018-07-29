@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceWorkOrderDao">
+
+    <!-- 查询字段公共sql -->
+    <sql id="selectAllColumns">
+        <![CDATA[
+			SELECT
+                id as id,
+                work_order_num as workOrderNum,
+                description as description,
+                work_type as workType,
+                project_type as projectType,
+                status as status,
+                status_date as statusDate,
+                asset_id as assetId,
+                asset_desc as assetDesc,
+                classification_id as classificationId,
+                location_id as locationId,
+                incident_level as incidentLevel,
+                site_id as siteId,
+                parent_work_order_id as parentWorkOrderId,
+                childer_work_order_id as childerWorkOrderId,
+                udisww as udisww,
+                maintenance_plan_num as maintenancePlanNum,
+                report_id as reportId,
+                report_date as reportDate,
+                report_description as reportDescription,
+                archives_num as archivesNum,
+                contract_id as contractId,
+                repair_id as repairId,
+
+                entrust_execute as entrustExecute,
+                execution_work_group as executionWorkGroup,
+                assign_person_id as assignPersonId,
+                company_id as companyId,
+                expected_charge as expectedCharge,
+                plan_start_date as planStartDate,
+                plan_completion_date as planCompletionDate,
+                job_standard_id as jobStandardId,
+
+                actual_work_group as actualWorkGroup,
+                actual_executor_responsible_id as actualExecutorResponsibleId,
+                actual_start_date as actualStartDate,
+                actual_end_date as actualEndDate,
+                failure_summarize as failureSummarize,
+                suspension as suspension,
+                suspension_start_date as suspensionStartDate,
+                suspension_end_date as suspensionEndDate,
+                suspension_type as suspensionType,
+                execute_whether_timeout as executeWhetherTimeout,
+                actual_charge as actualCharge,
+
+                confirm as confirm,
+                acception_time as acceptionTime,
+                acceptor_id as acceptorId,
+                acception_desc as acceptionDesc,
+                work_order_total_duration as workOrderTotalDuration,
+                work_order_total_time as workOrderTotalTime,
+                single_asset_this_time as singleAssetThisTime,
+                single_asset_last_time as singleAssetLastTime,
+                single_asset_nomal_time as singleAssetNomalTime,
+
+                org_id as orgId,
+                process_instance_id as processInstanceId,
+                update_date as updateDate,
+                create_user as createUser,
+                create_date as createDate
+
+                from eam_work_order workorder
+		]]>
+    </sql>
+
+    <select id="findWorkOrderById" parameterType="String" resultType="com.enerbos.cloud.eam.microservice.domain.MaintenanceWorkOrder">
+        <include refid="selectAllColumns" />
+        where workorder.id = #{id}
+    </select>
+
+    <select id="findWorkOrderByIds" parameterType="String" resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForDetailVo">
+        <include refid="selectAllColumns" />
+        where 1=1
+        <if test="ids != null and ids.size()>0">
+            and workorder.id in
+            <foreach collection="ids" item="id" index="index" open="(" separator=" , " close=")">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="findWorkOrderCommitByID" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForCommitVo">
+        SELECT
+        <!-- 工单提报 -->
+        id as id,
+        work_order_num as workOrderNum,
+        description as description,
+        work_type as workType,
+        project_type as projectType,
+        status as status,
+        status_date as statusDate,
+        asset_id as assetId,
+        asset_desc as assetDesc,
+        classification_id as classificationId,
+        location_id as locationId,
+        incident_level as incidentLevel,
+        site_id as siteId,
+        parent_work_order_id as parentWorkOrderId,
+        childer_work_order_id as childerWorkOrderId,
+        udisww as udisww,
+        maintenance_plan_num as maintenancePlanNum,
+        report_id as reportId,
+        report_date as reportDate,
+        report_description as reportDescription,
+        archives_num as archivesNum,
+        contract_id as contractId,
+        repair_id as repairId,
+
+        org_id as orgId,
+        process_instance_id as processInstanceId,
+        update_date as updateDate,
+        create_user as createUser,
+        create_date as createDate
+
+        from eam_work_order workorder
+        where workorder.id = #{id}
+    </select>
+
+    <select id="findWorkOrderAssignByID" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForAssignVo">
+        SELECT
+        <!-- 工单提报 -->
+        id as id,
+        status as status,
+        status_date as statusDate,
+        site_id as siteId,
+        maintenance_plan_num as maintenancePlanNum,
+        report_id as reportId,
+
+        <!-- 任务分派 -->
+        entrust_execute as entrustExecute,
+        execution_work_group as executionWorkGroup,
+        assign_person_id as assignPersonId,
+        company_id as companyId,
+        expected_charge as expectedCharge,
+        plan_start_date as planStartDate,
+        plan_completion_date as planCompletionDate,
+        job_standard_id as jobStandardId,
+
+        org_id as orgId,
+        process_instance_id as processInstanceId,
+        update_date as updateDate
+
+        from eam_work_order workorder
+        where workorder.id = #{id}
+    </select>
+
+    <select id="findWorkOrderReportByID" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForReportVo">
+        SELECT
+        <!-- 工单提报 -->
+        id as id,
+        status as status,
+        status_date as statusDate,
+        site_id as siteId,
+        report_id as reportId,
+        project_type as projectType,
+        assign_person_id as assignPersonId,
+        <!-- 执行汇报 -->
+        actual_work_group as actualWorkGroup,
+        actual_executor_responsible_id as actualExecutorResponsibleId,
+        actual_start_date as actualStartDate,
+        actual_end_date as actualEndDate,
+        failure_summarize as failureSummarize,
+        suspension as suspension,
+        suspension_start_date as suspensionStartDate,
+        suspension_end_date as suspensionEndDate,
+        suspension_type as suspensionType,
+        execute_whether_timeout as executeWhetherTimeout,
+        actual_charge as actualCharge,
+
+        org_id as orgId,
+        process_instance_id as processInstanceId,
+        update_date as updateDate
+
+        from eam_work_order workorder
+        where workorder.id = #{id}
+    </select>
+
+    <select id="findWorkOrderCheckAcceptByID" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForCheckAcceptVo">
+        SELECT
+        <!-- 工单提报 -->
+        id as id,
+        status as status,
+        status_date as statusDate,
+        site_id as siteId,
+        report_id as reportId,
+        actual_executor_responsible_id as actualExecutorResponsibleId,
+        <!-- 验收确认 -->
+        confirm as confirm,
+        acception_time as acceptionTime,
+        acceptor_id as acceptorId,
+        acception_desc as acceptionDesc,
+        work_order_total_duration as workOrderTotalDuration,
+        work_order_total_time as workOrderTotalTime,
+        single_asset_this_time as singleAssetThisTime,
+        single_asset_last_time as singleAssetLastTime,
+        single_asset_nomal_time as singleAssetNomalTime,
+
+        org_id as orgId,
+        process_instance_id as processInstanceId,
+        update_date as updateDate
+
+        from eam_work_order workorder
+        where workorder.id = #{id}
+    </select>
+    <select id="findWorkOrderCommitByWorkOrderNum" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForCommitVo">
+        SELECT
+        <!-- 工单提报 -->
+        id as id,
+        work_order_num as workOrderNum,
+        description as description,
+        work_type as workType,
+        project_type as projectType,
+        status as status,
+        status_date as statusDate,
+        asset_id as assetId,
+        asset_desc as assetDesc,
+        classification_id as classificationId,
+        location_id as locationId,
+        incident_level as incidentLevel,
+        site_id as siteId,
+        parent_work_order_id as parentWorkOrderId,
+        childer_work_order_id as childerWorkOrderId,
+        udisww as udisww,
+        maintenance_plan_num as maintenancePlanNum,
+        report_id as reportId,
+        report_date as reportDate,
+        report_description as reportDescription,
+        archives_num as archivesNum,
+        contract_id as contractId,
+        repair_id as repairId,
+
+        org_id as orgId,
+        process_instance_id as processInstanceId,
+        update_date as updateDate,
+        create_user as createUser,
+        create_date as createDate
+
+        from eam_work_order workorder
+        where workorder.work_order_num = #{workOrderNum}
+    </select>
+
+    <select id="findEamWorkOrder" resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForListVo"
+            parameterType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderSelectVo">
+        SELECT
+        maintenanceWorkOrder.id as id,
+        maintenanceWorkOrder.work_order_num as workOrderNum,
+        maintenanceWorkOrder.description as description,
+        maintenanceWorkOrder.project_type as projectType,
+        maintenanceWorkOrder.status as status,
+        maintenanceWorkOrder.asset_id as assetId,
+        maintenanceWorkOrder.work_type as workType,
+        maintenanceWorkOrder.location_id as locationId,
+        maintenanceWorkOrder.site_id as siteId,
+        maintenanceWorkOrder.execute_whether_timeout as executeWhetherTimeout,
+        maintenanceWorkOrder.udisww as udisww,
+        maintenanceWorkOrder.report_date as reportDate,
+        maintenanceWorkOrder.org_id as orgId,
+        maintenanceWorkOrder.actual_end_date as actualEndDate,
+        maintenanceWorkOrder.collect
+        FROM (SELECT *,
+        <choose>
+            <!-- 如果人员ID为空，则不需要连表操作 -->
+            <when test="personId != null ">
+                EXISTS ( SELECT 1 FROM
+                eam_work_order_rf_collector workOrderRfCollector
+                WHERE
+                eam_work_order.id = workOrderRfCollector.work_order_id
+                AND workOrderRfCollector.person_id = #{personId}
+                ) AS collect
+            </when>
+            <otherwise>
+                0 as collect
+            </otherwise>
+        </choose>
+        from eam_work_order) maintenanceWorkOrder
+        where 1=1
+        <if test="projectType != null and projectType.size()>0">
+            and maintenanceWorkOrder.project_type in
+            <foreach collection="projectType" item="project" index="index" open="(" separator=" , " close=")">
+                #{project}
+            </foreach>
+        </if>
+        <if test="status != null and status.size()>0">
+            and maintenanceWorkOrder.status in
+            <foreach collection="status" item="status" index="index" open="(" separator=" , " close=")">
+                #{status}
+            </foreach>
+        </if>
+        <if test="workType != null and workType.size()>0">
+            and maintenanceWorkOrder.work_type in
+            <foreach collection="workType" item="work" index="index" open="(" separator=" , " close=")">
+                #{work}
+            </foreach>
+        </if>
+        <if test="siteId != null ">
+            <![CDATA[ and maintenanceWorkOrder.site_id  = #{siteId} ]]>
+        </if>
+        <if test="locationId != null ">
+            <![CDATA[ and maintenanceWorkOrder.location_id  = #{locationId} ]]>
+        </if>
+        <if test="udisww != null ">
+            <![CDATA[ and maintenanceWorkOrder.udisww  = #{udisww} ]]>
+        </if>
+        <if test="contractId != null ">
+            <![CDATA[ and maintenanceWorkOrder.contract_id  = #{contractId} ]]>
+        </if>
+        <if test="repairId != null ">
+            <![CDATA[ and maintenanceWorkOrder.repair_id  = #{repairId} ]]>
+        </if>
+        <if test="orgId != null ">
+            <![CDATA[ and maintenanceWorkOrder.org_id  = #{orgId} ]]>
+        </if>
+        <if test="executeWhetherTimeout != null ">
+            <![CDATA[ and maintenanceWorkOrder.execute_whether_timeout  = #{executeWhetherTimeout} ]]>
+        </if>
+        <if test="reportId != null and reportId.size()>0">
+            and maintenanceWorkOrder.report_id in
+            <foreach collection="reportId" item="report" index="index" open="(" separator=" , " close=")">
+                #{report}
+            </foreach>
+        </if>
+        <if test="actualExecutorId != null and !actualExecutorId.isEmpty()">
+            and EXISTS (SELECT 1 FROM
+            eam_order_person EamOrderPerson
+            WHERE maintenanceWorkOrder.id = EamOrderPerson.order_id
+            AND EamOrderPerson.field_type = #{actualExecutorFieldType}
+            AND EamOrderPerson.person_id IN
+            <foreach collection="actualExecutorId" item="actualExecutor" index="index" separator="," open=" ("
+                     close=") ">
+                #{actualExecutor}
+            </foreach>
+            )
+        </if>
+        <if test="reportStartDate != null ">
+            <![CDATA[ and maintenanceWorkOrder.report_date  >= #{reportStartDate} ]]>
+        </if>
+        <if test="reportEndDate != null ">
+            <![CDATA[ and maintenanceWorkOrder.report_date  <= DATE_SUB(#{reportEndDate},INTERVAL -1 DAY) ]]>
+        </if>
+        <if test="acceptionStartTime != null ">
+            <![CDATA[ and maintenanceWorkOrder.acception_time  >= #{acceptionStartTime} ]]>
+        </if>
+        <if test="acceptionEndTime != null ">
+            <![CDATA[ and maintenanceWorkOrder.acception_time  <= DATE_SUB(#{acceptionEndTime},INTERVAL -1 DAY) ]]>
+        </if>
+        <if test="whetherParentWorkOrder != null and whetherParentWorkOrder=false">
+            <![CDATA[ and maintenanceWorkOrder.parent_work_order_id is null  ]]>
+        </if>
+        <if test="maintenancePlanNum != null">
+            <![CDATA[ and maintenanceWorkOrder.maintenance_plan_num  = #{maintenancePlanNum} ]]>
+        </if>
+        <if test="wordsList != null ">
+            <foreach collection="wordsList" item="word" index="index" separator="  ">
+                and (maintenanceWorkOrder.work_order_num like CONCAT('%',#{word},'%') or
+                maintenanceWorkOrder.description like CONCAT('%',#{word},'%')
+                )
+            </foreach>
+        </if>
+        <if test="collect != null">
+            and maintenanceWorkOrder.collect = #{collect}
+        </if>
+        <choose>
+            <when test="sorts !=null and sorts !=''">
+                order by ${sorts}
+            </when>
+            <otherwise>
+                order by maintenanceWorkOrder.create_date desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findPageWorkOrderByAssetId" resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderForListVo"
+            parameterType="com.enerbos.cloud.eam.vo.MaintenanceForAssetFilterVo">
+        SELECT DISTINCT
+        workOrder.id as id,
+        workOrder.work_order_num as workOrderNum,
+        workOrder.description as description,
+        workOrder.project_type as projectType,
+        workOrder.status as status,
+        workOrder.asset_id as assetId,
+        workOrder.work_type as workType,
+        workOrder.location_id as locationId,
+        workOrder.site_id as siteId,
+        workOrder.execute_whether_timeout as executeWhetherTimeout,
+        workOrder.udisww as udisww,
+        workOrder.report_date as reportDate,
+        workOrder.org_id as orgId,
+        actual_end_date as actualEndDate
+        from eam_work_order workOrder,eam_work_order_asset workOrderAsset
+        where workOrder.id=workOrderAsset.work_order_id
+        <if test="assetId != null ">
+            <![CDATA[ and workOrderAsset.asset_id  = #{assetId} ]]>
+        </if>
+        <choose>
+            <when test="sorts !=null and sorts !=''">
+                order by ${sorts}
+            </when>
+            <otherwise>
+                order by workOrder.create_date desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findWorkOrderSingleAssetLastTimeById" resultType="java.lang.Double" parameterType="String">
+		SELECT workOder.single_asset_this_time from eam_work_order workOder,eam_work_order thisWorkOrder
+		where  workOder.maintenance_plan_num=thisWorkOrder.maintenance_plan_num
+		and thisWorkOrder.create_date >workOder.create_date and thisWorkOrder.id  = #{id}
+		GROUP BY workOder.create_date limit 1
+	</select>
+
+    <select id="findCountByStatus" resultType="com.enerbos.cloud.eam.vo.OrderCountBySiteVo"
+            parameterType="java.lang.String">
+        SELECT
+        count(id) as total,
+        SUM( CASE WHEN STATUS NOT IN ('GB','QX') THEN 1 ELSE 0 END ) AS wwc,
+        SUM( CASE WHEN STATUS IN ('GB','QX') THEN 1 ELSE 0 END ) AS ywc,
+        SUM( CASE WHEN STATUS = 'GQ' THEN 1 ELSE 0 END) AS gq,
+        SUM( CASE WHEN STATUS = 'DFP' THEN 1 ELSE 0 END) AS dfp,
+        SUM( CASE WHEN STATUS = 'DHB' THEN 1 ELSE 0 END) AS dhb,
+        SUM( CASE WHEN STATUS = 'DJD' THEN 1 ELSE 0 END) AS djd,
+        SUM( CASE WHEN STATUS = 'DYS' THEN 1 ELSE 0 END) AS dys,
+        SUM( CASE WHEN STATUS = 'QX' THEN 1 ELSE 0 END) AS qx,
+        SUM( CASE WHEN STATUS = 'DTB' THEN 1 ELSE 0 END) AS dtb,
+        SUM( CASE WHEN STATUS = 'SQGQ' THEN 1 ELSE 0 END) AS sqgq,
+        SUM( CASE WHEN STATUS = 'YSDQR' THEN 1 ELSE 0 END) AS ysdqr
+        FROM eam_work_order
+        WHERE 1=1
+        <if test="siteId != null ">
+            <![CDATA[ and site_id  = #{siteId} ]]>
+        </if>
+        <if test="orgId != null ">
+            <![CDATA[ and org_id  = #{orgId} ]]>
+        </if>
+        <if test="startDate != null ">
+            <![CDATA[ and create_date  >= #{startDate} ]]>
+        </if>
+        <if test="endDate != null ">
+            <![CDATA[ and create_date  <= DATE_SUB(#{endDate},INTERVAL -1 DAY) ]]>
+        </if>
+    </select>
+
+
+    <select id="findCountAndRingratio" resultType="map" parameterType="map">
+	select count(id) as total,
+	CASE WHEN SUM( CASE WHEN STATUS NOT IN ('GB','QX') THEN 1 ELSE 0 END ) IS NULL THEN 0 ELSE SUM( CASE WHEN STATUS NOT IN ('GB','QX') THEN 1 ELSE 0 END ) END AS wwc,
+	CASE WHEN SUM( CASE WHEN STATUS IN ('GB','QX') THEN 1 ELSE 0 END ) IS NULL THEN 0 ELSE SUM( CASE WHEN STATUS IN ('GB','QX') THEN 1 ELSE 0 END ) END AS ywc  
+	from  eam_work_order 
+	where site_id= #{siteId} 
+	and 
+	date(create_date)= #{createDate}
+	</select>
+
+    <select id="findWorkOrderTotal" parameterType="map" resultType="com.enerbos.cloud.eam.vo.DashboardOrderCountVo">
+
+        SELECT COUNT(*) orderTotal,work_type orderType FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"/>
+        GROUP BY work_type
+    </select>
+
+
+    <select id="findMaxCountOrder" resultType="com.enerbos.cloud.eam.vo.OrderMaxCountVo" parameterType="map">
+
+        SELECT a.total AS maxTotal,a.site_id AS siteId,'最大外委保养工单' AS orderName FROM (SELECT COUNT(*)
+        total,site_id,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END
+        )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY site_id,work_type,udisww) a
+        WHERE a.work_type='PM' AND a.udisww = TRUE AND a.total = (SELECT MAX(total) FROM (SELECT COUNT(*)
+        total,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END )udisww
+        FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY site_id,work_type,udisww) b WHERE
+        b.work_type='PM' AND b.udisww = TRUE)
+        UNION ALL
+
+        SELECT a.total AS maxTotal,a.site_id AS siteId,'最大内部保养工单' AS orderName FROM (SELECT COUNT(*)
+        total,site_id,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END
+        )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY site_id,work_type,udisww) a
+        WHERE a.work_type='PM' AND a.udisww = FALSE AND a.total = (SELECT MAX(total) FROM (SELECT
+        COUNT(*)total,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY
+        site_id,work_type,udisww) b WHERE
+        b.work_type='PM' AND b.udisww = FALSE)
+        UNION ALL
+
+        SELECT a.total AS maxTotal,a.site_id AS siteId,'最大外委维修工单' AS orderName FROM (SELECT COUNT(*)
+        total,site_id,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END
+        )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY site_id,work_type,udisww) a
+        WHERE a.work_type='BM' AND a.udisww = TRUE AND a.total = (SELECT MAX(total) FROM (SELECT COUNT(*)
+        total,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY
+        site_id,work_type,udisww) b WHERE
+        b.work_type='BM' AND b.udisww = TRUE)
+        UNION ALL
+
+        SELECT a.total AS maxTotal,a.site_id AS siteId,'最大内部维修工单' AS orderName FROM (SELECT COUNT(*)
+        total,site_id,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END
+        )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY site_id,work_type,udisww) a
+        WHERE a.work_type='BM' AND a.udisww = FALSE AND a.total = (SELECT MAX(total) FROM (SELECT COUNT(*)
+        total,work_type,(CASE WHEN udisww IS NULL THEN FALSE ELSE TRUE END )udisww FROM eam_work_order WHERE 1=1
+        <include refid="wherecondition"></include>
+        GROUP BY
+        site_id,work_type,udisww) b WHERE
+        b.work_type='BM' AND b.udisww = FALSE)
+
+    </select>
+
+    <sql id="wherecondition">
+
+        <if test="orgId!=null">
+            AND org_id=#{orgId}
+        </if>
+        <if test="startDate!=null">
+            AND create_date &gt; #{startDate}
+        </if>
+        <if test="endDate!=null">
+            AND create_date &lt; #{endDate}
+        </if>
+    </sql>
+
+    <select id="" resultType="map" parameterType="map">
+
+        SELECT project_type,COUNT(*) total, SUM(CASE WHEN `status` IN ('DYS', 'GB','YSDQR','QX') THEN 1 ELSE 0 END) AS
+        yxf, SUM(CASE WHEN `status` IN ('GQ','DHB','DFP','DJD','SQGQ','DTB') THEN 1 ELSE 0 END) AS wxf FROM
+        eam_work_order WHERE 1=1
+        <include refid="whereconditionworkorder"/>
+        GROUP BY project_type
+    </select>
+    <select id="findCountWorkOrder" resultType="map" parameterType="map">
+
+        SELECT project_type,COUNT(*) total, SUM(CASE WHEN `status` IN ('DYS', 'GB','YSDQR','QX') THEN 1 ELSE 0 END) AS
+        yxf, SUM(CASE WHEN `status` IN ('GQ','DHB','DFP','DJD','SQGQ','DTB') THEN 1 ELSE 0 END) AS wxf FROM
+        eam_work_order WHERE 1=1
+        <include refid="whereconditionworkorder"/>
+        GROUP BY project_type
+    </select>
+
+
+    <select id="findCountUndoneWorkOrder" resultType="map" parameterType="map">
+
+        SELECT project_type, SUM(CASE WHEN `status` IN ('GQ','DHB','DFP','DJD','SQGQ') THEN 1 ELSE 0 END) AS wxf,
+        SUM(CASE WHEN `status` IN ('GQ','SQGQ') AND `suspension_type`='GYSWX' THEN 1 ELSE 0 END) AS gys, SUM(CASE WHEN
+        `status` IN ('GQ','SQGQ') AND `suspension_type`='QSBJ' THEN 1 ELSE 0 END) AS qbj, SUM(CASE WHEN `status` IN
+        ('GQ','SQGQ') AND `suspension_type`='OTHER' THEN 1 ELSE 0 END) AS qt FROM eam_work_order WHERE  1=1
+        <include refid="whereconditionworkorder"/>
+        GROUP BY project_type
+    </select>
+
+    <sql id="whereconditionworkorder">
+
+        <if test="siteId!=null">
+            AND site_id=#{siteId}
+        </if>
+        <if test="startDate!=null">
+            AND report_date &gt; #{startDate}
+        </if>
+        <if test="endDate!=null">
+            AND report_date &lt; #{endDate}
+        </if>
+    </sql>
+
+</mapper>

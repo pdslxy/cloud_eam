@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceWorkOrderAssetDao">
+	
+	<!-- 查询字段公共sql -->
+	<sql id="selectAllColumns">
+		<![CDATA[
+		SELECT
+			 id as id, 
+			 asset_id as assetId, 
+			 work_order_id as workOrderId 
+			FROM eam_work_order_asset orderAsset
+		]]>
+	</sql>
+	
+	<select id="findWorkOrderAssetByID" parameterType="String" resultType="com.enerbos.cloud.eam.vo.MaintenanceWorkOrderAssetVo">
+        <include refid="selectAllColumns"/> 
+         where orderAsset.id = #{id}
+    </select>
+    
+    <select id="findAssetListByWorkOrderId" parameterType="String" resultType="java.lang.String">
+         SELECT asset_id as assetId FROM eam_work_order_asset orderAsset
+         where orderAsset.work_order_id = #{workOrderId}
+    </select>
+
+    <select id="findAssetListByWorkOrderIds" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT	id	FROM eam_work_order_asset orderAsset	where 1=1
+        <if test = "workOrderIds != null ">
+            <![CDATA[ and orderAsset.work_order_id  in  ]]>
+            <foreach collection="workOrderIds" item="workOrderId" index="index" open="(" separator=" , " close=")">
+                #{workOrderId}
+            </foreach>
+        </if>
+        <if test = "assetIds != null ">
+            <![CDATA[ and orderAsset.asset_id  in  ]]>
+            <foreach collection="assetIds" item="assetId" index="index" open="(" separator=" , " close=")">
+                #{assetId}
+            </foreach>
+        </if>
+    </select>
+</mapper>

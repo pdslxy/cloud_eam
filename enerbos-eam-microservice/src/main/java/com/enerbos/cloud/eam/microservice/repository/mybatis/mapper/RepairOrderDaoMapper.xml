@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.RepairOrderDao">
+	
+	<!-- 查询字段公共sql -->
+	<sql id="allColumns">
+		<![CDATA[
+ 				id as id,
+ 				create_user as createUser,
+ 				create_date as createDate,
+ 				update_date as updateDate,
+ 				id as workOrderId,
+				work_order_status as workOrderStatus,
+				work_order_status_date as workOrderStatusDate,
+				work_order_num as workOrderNum,
+				description as description,
+				work_order_source as workOrderSource,
+				project_type as projectType,
+				incident_nature as incidentNature,
+				incident_level as incidentLevel,
+				repair_dept as repairDept,
+				repair_person as repairPerson,
+				repair_person_tel as repairPersonTel,
+				report_assign_flag as reportAssignFlag,
+				report_person_id as reportPersonId,
+				report_person_tel as reportPersonTel,
+				report_date as reportDate,
+				report_description as reportDescription,
+				dispatch_person_id as dispatchPersonId,
+				dispatch_time as dispatchTime,
+				entrust_execute as entrustExecute,
+				receive_person_id as receivePersonId,
+				completion_time as completionTime,
+				consume_hours as consumeHours,
+				suspension as suspension,
+				suspension_type as suspensionType,
+				suspension_cause as suspensionCause,
+				execute_timeout as executeTimeout,
+				order_report_person_id as orderReportPersonId,
+				accept_time as acceptTime,
+				confirm as confirm,
+				accept_description as acceptDescription,
+				maintenance_work_order_id as maintenanceWorkOrderId,
+				maintenance_work_order_num as maintenanceWorkOrderNum,
+				maintenance_quality as maintenanceQuality,
+				maintenance_attitude as maintenanceAttitude,
+				org_id as orgId,
+				site_id as siteId,
+				job_number as jobNumber,
+				process_instance_id as processInstanceId,
+				ref_asset_id as refAssetId
+		]]>
+	</sql>
+
+	<sql id="baseSelect">
+		SELECT
+		<include refid="allColumns"/>
+		FROM eam_repair_order RepairOrder
+	</sql>
+
+	<sql id="order">
+		order by
+		<choose>
+			<when test="sorts != null and sorts.length > 0">
+				${sorts}
+			</when>
+			<otherwise>
+				createDate
+			</otherwise>
+		</choose>
+		<choose>
+			<when test="order != null and (order=='desc' or order=='asc')">
+				${order}
+			</when>
+			<otherwise>
+				DESC
+			</otherwise>
+		</choose>
+	</sql>
+
+	<select id="findListByFilter" parameterType="com.enerbos.cloud.eam.vo.RepairOrderListFilterVo" resultType="com.enerbos.cloud.eam.vo.RepairOrderListVo">
+        SELECT * FROM
+		(
+			SELECT
+				<include refid="allColumns"/>
+				,
+				EXISTS (
+					SELECT
+					1
+					FROM
+					eam_repair_evaluate RepairEvaluate
+					WHERE
+					RepairEvaluate.repair_order_id = RepairOrder.id
+				) as evaluate,
+				<choose>
+					<!-- 如果人员ID为空，则不需要连表操作 -->
+					<when test="personId != null ">
+						EXISTS (
+						SELECT
+						1
+						FROM
+						eam_repair_order_rf_collector RepairOrderRfCollector
+						WHERE
+						RepairOrder.id = RepairOrderRfCollector.work_order_id
+						AND RepairOrderRfCollector.person_id = #{personId}
+						) AS collect
+					</when>
+					<otherwise>
+						0 as collect
+					</otherwise>
+				</choose>
+				FROM
+				eam_repair_order RepairOrder
+		) RepairOrderListVo
+        where 1 = 1
+		<if test="fuzzy != null and !fuzzy.isEmpty()">
+			and (
+			<foreach collection="fuzzy" item="_key" index="index" separator="or" open=" (" close=") ">
+				RepairOrderListVo.workOrderNum like CONCAT('%', #{_key}, '%')
+				or RepairOrderListVo.description like CONCAT('%', #{_key}, '%')
+				or RepairOrderListVo.repairDept like CONCAT('%', #{_key}, '%')
+				or RepairOrderListVo.repairPerson like CONCAT('%', #{_key}, '%')
+			</foreach>
+			)
+		</if>
+		<if test="workOrderNum != null">
+			and RepairOrderListVo.workOrderNum  like CONCAT('%', #{workOrderNum},'%')
+		</if>
+		<if test="description != null">
+			and RepairOrderListVo.description  like CONCAT('%', #{description},'%')
+		</if>
+		<if test="projectType != null and !projectType.isEmpty()">
+			and RepairOrderListVo.projectType in
+			<foreach collection="projectType" item="_key" index="index" separator="," open=" (" close=") ">
+				#{_key}
+			</foreach>
+		</if>
+		<if test="workOrderSource != null and !workOrderSource.isEmpty()">
+			and RepairOrderListVo.workOrderSource in
+			<foreach collection="workOrderSource" item="_key" index="index" separator="," open=" (" close=") ">
+				#{_key}
+			</foreach>
+		</if>
+		<if test="executeTimeout != null">
+			<![CDATA[ and RepairOrderListVo.executeTimeout  = #{executeTimeout} ]]>
+		</if>
+		<if test="workOrderStatus != null and !workOrderStatus.isEmpty()">
+			and RepairOrderListVo.workOrderStatus in
+			<foreach collection="workOrderStatus" item="_key" index="index" separator="," open=" (" close=") ">
+				#{_key}
+			</foreach>
+		</if>
+		<if test="incidentNature != null and !incidentNature.isEmpty()">
+			and RepairOrderListVo.incidentNature in
+			<foreach collection="incidentNature" item="_key" index="index" separator="," open=" (" close=") ">
+				#{_key}
+			</foreach>
+		</if>
+		<if test="incidentLevel != null and !incidentLevel.isEmpty()">
+			and RepairOrderListVo.incidentLevel in
+			<foreach collection="incidentLevel" item="_key" index="index" separator="," open=" (" close=") ">
+				#{_key}
+			</foreach>
+		</if>
+		<if test="repairPerson != null">
+			and RepairOrderListVo.repairPerson  like CONCAT('%', #{repairPerson},'%')
+		</if>
+		<if test="repairDept != null">
+			and RepairOrderListVo.repairDept  like CONCAT('%', #{repairDept}, '%')
+		</if>
+		<if test="reportPersonId != null and !reportPersonId.isEmpty()">
+			and RepairOrderListVo.reportPersonId in
+			<foreach collection="reportPersonId" item="_key" index="index" separator="," open=" (" close=") ">
+				#{_key}
+			</foreach>
+		</if>
+		<if test="reportDateBegin != null">
+			<![CDATA[ and RepairOrderListVo.reportDate  >= #{reportDateBegin} ]]>
+		</if>
+		<if test="reportDateEnd != null">
+			<![CDATA[ and RepairOrderListVo.reportDate  <= #{reportDateEnd} ]]>
+		</if>
+		<if test="acceptTimeBegin != null">
+			<![CDATA[ and RepairOrderListVo.acceptTime  >= #{acceptTimeBegin} ]]>
+		</if>
+		<if test="acceptTimeEnd != null">
+			<![CDATA[ and RepairOrderListVo.acceptTime  <= #{acceptTimeEnd} ]]>
+		</if>
+		<if test="collect != null">
+			and RepairOrderListVo.collect  = #{collect}
+		</if>
+		<if test="actualExecutionPersonId != null and !actualExecutionPersonId.isEmpty()">
+			and EXISTS (SELECT 1 FROM
+				eam_order_person EamOrderPerson
+				WHERE
+				workOrderId = EamOrderPerson.order_id
+				AND EamOrderPerson.field_type = #{actualExecutionPersonFieldType}
+				AND EamOrderPerson.person_id IN
+				<foreach collection="actualExecutionPersonId" item="_key" index="index" separator="," open=" (" close=") ">
+					#{_key}
+				</foreach>
+			)
+		</if>
+		<if test="orgId != null">
+			and RepairOrderListVo.orgId  = #{orgId}
+		</if>
+		<if test="siteId != null">
+			and RepairOrderListVo.siteId  = #{siteId}
+		</if>
+		<if test="createUser != null">
+			and RepairOrderListVo.createUser  = #{createUser}
+		</if>
+		<if test="refAssetId != null">
+			and RepairOrderListVo.refAssetId  = #{refAssetId}
+		</if>
+		<include refid="order" />
+    </select>
+
+	<select id="checkWorkOrderNum" parameterType="String" resultType="Integer">
+		SELECT 1 FROM eam_repair_order RepairOrder WHERE RepairOrder.work_order_num = #{workOrderNum}
+	</select>
+
+	<select id="findOne" parameterType="String" resultType="com.enerbos.cloud.eam.vo.RepairOrderFlowVo">
+		<include refid="baseSelect" />
+		WHERE id = #{id}
+	</select>
+
+	<select id="findList" parameterType="java.util.List" resultType="com.enerbos.cloud.eam.vo.RepairOrderFlowVo">
+		<include refid="baseSelect"/>
+		WHERE
+		<choose>
+			<when test="list != null and list.size() > 0">
+				id in
+				<foreach collection="list" item="_key" index="index" separator="," open=" (" close=") ">
+					#{_key}
+				</foreach>
+			</when>
+			<otherwise>
+				1 != 1
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findCountByStatus" resultType="com.enerbos.cloud.eam.vo.OrderCountBySiteVo" parameterType="String">
+	SELECT 
+             count(id) as total, 
+             SUM( CASE WHEN work_order_status NOT IN ('GB','QX') THEN 1 ELSE 0 END ) AS wwc, 
+             SUM( CASE WHEN work_order_status IN ('GB','QX') THEN 1 ELSE 0 END ) AS ywc,  
+             SUM( CASE WHEN work_order_status = 'GQ' THEN 1 ELSE 0 END) AS gq, 
+             SUM( CASE WHEN work_order_status = 'DFP' THEN 1 ELSE 0 END) AS dfp, 
+             SUM( CASE WHEN work_order_status = 'DHB' THEN 1 ELSE 0 END) AS dhb, 
+             SUM( CASE WHEN work_order_status = 'DJD' THEN 1 ELSE 0 END) AS djd, 
+             SUM( CASE WHEN work_order_status = 'DYS' THEN 1 ELSE 0 END) AS dys, 
+             SUM( CASE WHEN work_order_status = 'QX' THEN 1 ELSE 0 END) AS qx, 
+             SUM( CASE WHEN work_order_status = 'DTB' THEN 1 ELSE 0 END) AS dtb, 
+             SUM( CASE WHEN work_order_status = 'SQGQ' THEN 1 ELSE 0 END) AS sqgq, 
+             SUM( CASE WHEN work_order_status = 'YSDQR' THEN 1 ELSE 0 END) AS ysdqr 
+            FROM eam_repair_order 
+		WHERE  1=1
+		<if test = "siteId != null ">
+			<![CDATA[ and site_id  = #{siteId} ]]>
+		</if>
+		<if test = "orgId != null ">
+			<![CDATA[ and org_id  = #{orgId} ]]>
+		</if>
+		<if test = "startDate != null ">
+			<![CDATA[ and create_date  >= #{startDate} ]]>
+		</if>
+		<if test = "endDate != null ">
+			<![CDATA[ and create_date  <= DATE_SUB(#{endDate},INTERVAL -1 DAY) ]]>
+		</if>
+	</select>
+
+	<select id="findCountAndRingratio" resultType="map" parameterType="String">
+	SELECT 
+		count(id) as total,
+		case when SUM( CASE WHEN work_order_status NOT IN ('GB','QX') THEN 1 ELSE 0 END ) IS NULL then 0 ELSE SUM( CASE WHEN work_order_status NOT IN ('GB','QX') THEN 1 ELSE 0 END ) END AS wwc,
+		case when SUM( CASE WHEN work_order_status IN ('GB','QX') THEN 1 ELSE 0 END ) IS NULL THEN 0 ELSE SUM( CASE WHEN work_order_status IN ('GB','QX') THEN 1 ELSE 0 END ) END AS ywc 
+		FROM eam_repair_order  
+		WHERE 
+		site_id = #{siteId} and date(create_date)= #{createDate}
+	</select>
+
+	<select id="findCountRepairAndEvaluate" resultType="map" parameterType="String">
+		SELECT 
+		case when SUM( CASE WHEN work_order_status IN ('GB','QX') THEN 1 ELSE 0 END ) IS NULL THEN 0 ELSE SUM( CASE WHEN work_order_status IN ('GB','QX') THEN 1 ELSE 0 END ) END AS ywc,
+		case when SUM( CASE WHEN work_order_status IN ('DFP','DTB') THEN 1 ELSE 0 END ) IS NULL THEN 0 ELSE SUM( CASE WHEN work_order_status IN ('DFP','DTB') THEN 1 ELSE 0 END ) END AS wfp,
+		case when SUM( CASE WHEN work_order_status IN ('DYS','DHB','DJD','SQGQ','YSDQR') THEN 1 ELSE 0 END ) IS NULL THEN 0 ELSE SUM( CASE WHEN work_order_status IN ('DYS','DHB','DJD','SQGQ','YSDQR') THEN 1 ELSE 0 END ) END AS clz 
+		FROM eam_repair_order
+		WHERE site_id = #{siteId} and create_user= #{personId}
+	</select>
+
+	<select id="findMaxCountOrder" resultType="com.enerbos.cloud.eam.vo.OrderMaxCountVo" parameterType="map">
+
+		SELECT a.total AS maxTotal,a.site_id AS siteId,'最大报修工单' AS orderName FROM
+		(SELECT COUNT(*) total ,site_id FROM eam_repair_order WHERE 1=1
+		<include refid="whereColumn"/>
+		GROUP BY site_id) a WHERE a.total = ( SELECT MAX(total) FROM (SELECT COUNT(*) total ,site_id FROM
+		eam_repair_order WHERE 1=1
+		<include refid="whereColumn"/>
+		GROUP BY site_id) b)
+
+	</select>
+	<select id="getRepairOrderCount" resultType="int" parameterType="int">
+
+		select count(*) from eam_repair_order r where r.site_id = #{siteId} and r.org_id= #{orgId} and  r.work_order_source= #{orderSource}
+
+	</select>
+	
+
+	<sql id="whereColumn">
+		<if test="orgId != null ">
+			<![CDATA[ and org_id  = #{orgId} ]]>
+		</if>
+		<if test="startDate != null ">
+			<![CDATA[ and create_date  > #{startDate} ]]>
+		</if>
+		<if test="endDate != null ">
+			<![CDATA[ and create_date  < #{endDate} ]]>
+		</if>
+		<if test="siteId !=null">
+			<![CDATA[ and site_id < #{siteId}]]>
+		</if>
+
+	</sql>
+
+
+
+</mapper>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaterialInventoryDao">
+
+
+    <select id="findInventorys" resultType="com.enerbos.cloud.eam.vo.MaterialInventoryVoForList"
+            parameterType="map">
+
+        SELECT b.id,a.`item_num` As itemNum,a.`description` as
+        itemName,c.id storeroomId, c.`storeroom_name` storeroomName,b.current_balance AS
+        currentBalance
+        ,b.`order_unit` AS orderUnit,b.`issue_unit` AS
+        issue_unit,b.is_turn_over As isTurnOver,b.status as `status`,
+        b.`id` AS
+        inventoryId,a.site_id AS siteId,a.org_id AS orgId FROM
+        eam_material_item a,eam_material_inventory
+        b
+        ,eam_material_storeroom
+        c
+        WHERE 1=1 AND a.`id` = b.`item_id` AND
+        c.`id` =
+        b.`storeroom_id`
+
+        <include refid="where_columns"/>
+
+    </select>
+    <sql id="where_columns">
+        <if test="itemNum!=null">
+            and a.item_num=#{itemNum}
+        </if>
+        <if test="itemName!=null">
+            and a.description =#{itemName}
+        </if>
+        <if test="storeroomId!=null">
+            and b.storeroom_id = #{storeroomId}
+        </if>
+        <if test="storeroomNum!=null">
+            and c.storeroom_num = #{storeroomNum}
+        </if>
+        <if test="storeroomName!=null">
+            and c.description = #{storeroomName}
+        </if>
+        <if test="issueUnit!=null">
+            and b.issue_unit = #{issueUnit}
+        </if>
+        <if test="reorder!=null">
+            and b.reorder = #{reorder}
+        </if>
+        <if test="safeStock!=null">
+            and b.safestock = #{safeStock}
+        </if>
+        <if test="reorderPoint!=null">
+            and b.`reorder_point` = #{reorderPoint}
+        </if>
+
+        <if test="status != null and status.size()>0">
+            and b.status in
+            <foreach collection="status" item="statu" index="index" open="(" separator=" , " close=")">
+                #{statu}
+            </foreach>
+        </if>
+
+        <if test="costTypeId!=null and costTypeId.size()>0">
+            and b.cost_type_id in
+            <foreach collection="costTypeId" item="costType" index="index" open="(" separator=" , " close=")">
+                #{costType}
+            </foreach>
+        </if>
+        <if test="abcType!=null and abcType.size()>0">
+            and b.abc_type in
+            <foreach collection="abcType" item="abcType" index="index" open="(" separator=" , " close=")">
+                #{abcType}
+            </foreach>
+        </if>
+        <if test="collect!=null">
+            and b.id IN (SELECT collect_id FROM eam_material_rf_collector WHERE TYPE = 'inventory')
+        </if>
+        <if test="words!=null">
+            and
+            <foreach collection="words" close="" open="" index="index"
+                     item="word" separator=" and ">
+                (a.`item_num` like concat('%',#{word},'%') or
+                a.`description` like concat('%',#{word},'%') or
+                c.`storeroom_name` like concat('%',#{word},'%') )
+            </foreach>
+        </if>
+        <if test="siteId!=null">
+            and a.site_id =#{siteId}
+        </if>
+        <if test="orgId!=null">
+            and a.org_id =#{orgId}
+        </if>
+        <if test="endDate!=null">
+            and b.create_date &lt;  #{endDate}
+        </if>
+        <if test="startDate!=null">
+            and b.create_date &gt; #{startDate}
+        </if>
+
+        <if test="itemid!=null">
+            and a.id = #{itemid}
+        </if>
+        <if test="itemids!=null and itemids.length>0">
+            and b.id not in
+            <foreach collection="itemids" item="item" close=")" open="(" index="index" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="itemNums!=null and itemNums.length>0">
+            and a.item_num not in
+            <foreach collection="itemNums" item="itemNum" close=")" open="(" index="index" separator=",">
+                #{itemNum}
+            </foreach>
+        </if>
+
+        <if test="sorts!=null and sorts!='' ">
+            order by ${sorts}
+        </if>
+        <if test="sorts==null">
+            order by b.create_date DESC
+        </if>
+    </sql>
+
+    <select id="findInventorysByItemIdAndStoreroomId"
+            resultType="com.enerbos.cloud.eam.microservice.domain.MaterialInventory"
+            parameterType="string">
+      select * from eam_material_inventory where item_id = #{itemid}  and storeroom_id = #{storeroomId}
+    </select>
+
+    <select id="findInventorysByStoreroomId" parameterType="string"
+            resultType="com.enerbos.cloud.eam.vo.MaterialInventoryVoForStoreroomList">
+
+
+    SELECT a.`id`, c.`item_num` itemNum,c.`description`,a.`current_balance` currentBalance ,a.`standard_cost` standardCost,a.`average_cost` averageCost,a.`last_receive_cost` lastReceiveCost,a.`site_id` siteId
+    FROM eam_material_inventory a,eam_material_storeroom b ,eam_material_item c
+    WHERE a.`storeroom_id` = b.`id` AND a.`item_id` = c.`id` AND b.`id` =#{id} and a.org_id= #{orgId} and a.site_id = #{siteId}
+
+	</select>
+
+    <select id="findInventorysNotInCheck" parameterType="map"
+            resultType="com.enerbos.cloud.eam.vo.MaterialInventoryVoForList">
+
+        SELECT b.id,a.`item_num` AS itemNum,a.`description` AS
+        itemName,c.`storeroom_name` storeroomName,b.current_balance AS
+        currentBalance
+        ,b.`order_unit` AS orderUnit,b.`issue_unit` AS
+        issue_unit,b.is_turn_over AS isTurnOver,a.status AS `status`,
+        b.`id` AS
+        inventoryId,a.site_id AS siteId,a.org_id AS orgId FROM
+        eam_material_item a,eam_material_inventory b
+        ,eam_material_storeroom c
+        WHERE 1=1 AND a.`id` = b.`item_id` AND
+        c.`id` = b.`storeroom_id`
+        <if test="storeroomid!=null">
+            AND b.`storeroom_id`=#{storeroomid}
+        </if>
+        <if test="ids!=null">
+            AND b.`id` NOT IN
+            <foreach collection="ids" item="id" close=")" open="(" index="index" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="siteId!=null">
+            and a.site_id =#{siteId}
+        </if>
+        <if test="orgId!=null">
+            and a.org_id =#{orgId}
+        </if>
+
+    </select>
+
+    <select id="isItemInUse" parameterType="string" resultType="com.enerbos.cloud.eam.vo.MaterialInventoryVoForList">
+
+         SELECT b.id,a.`item_num` As itemNum,a.`description` as
+        itemName, b.current_balance AS
+        currentBalance
+        ,b.`order_unit` AS orderUnit,b.`issue_unit` AS
+        issue_unit,b.is_turn_over As isTurnOver,a.status as `status`,
+        b.`id` AS
+        inventoryId,a.site_id AS siteId,a.org_id AS orgId FROM
+        eam_material_item a,eam_material_inventory
+        b
+
+        WHERE 1=1 AND a.`id` = b.`item_id`   and a.id = #{id}
+
+    </select>
+    <select id="findStoreRoomInInventroy" parameterType="string"
+            resultType="com.enerbos.cloud.eam.vo.MaterialInventoryVo">
+
+        select * from eam_material_inventory where storeroom_id = #{id}
+
+    </select>
+
+
+</mapper>

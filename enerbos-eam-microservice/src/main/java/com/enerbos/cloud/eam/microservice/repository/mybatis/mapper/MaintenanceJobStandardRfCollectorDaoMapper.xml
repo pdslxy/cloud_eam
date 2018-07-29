@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceJobStandardRfCollectorDao">
+
+
+    <select id="findJobStandardRfCollectorByPersonId" parameterType="String" resultType="com.enerbos.cloud.eam.microservice.domain.MaintenanceJobStandardRfCollector">
+        SELECT
+        id as id,
+        job_standard_id as jobStandardId,
+        person_id as personId,
+        product as product
+        FROM eam_job_standard_rf_collector JobStandardRfCollector WHERE JobStandardRfCollector.person_id = #{personId}
+    </select>
+
+    <select id="checkIsCollected" resultType="Integer">
+        SELECT COUNT(1) FROM eam_job_standard_rf_collector JobStandardRfCollector WHERE JobStandardRfCollector.job_standard_id = #{jobStandardId} AND JobStandardRfCollector.person_id = #{personId} AND JobStandardRfCollector.product = #{product}
+    </select>
+
+</mapper>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.PatrolOrderDao">
+
+
+    <select id="findPatrolOrderListByFilters" resultType="com.enerbos.cloud.eam.vo.PatrolOrderVo" parameterType="map">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+    </select>
+
+    <sql id="select_columns">
+        SELECT DISTINCT
+        po.id,
+        po.patrolordernum patrolOrderNum,
+        po.description,
+        po.remark,
+        po.status,
+        po.type,
+        po.statusdate,
+        po.createtime,
+        po.updatetime,
+        po.orgid orgId,
+        po.siteid siteId,
+        po.patrolplanid patrolPlanId,
+        po.patrolrouteid patrolRouteId,
+        po.assignpersonid assignPersonId,
+        po.createpersonid createPersonId,
+        po.excutepersonid excutePersonId,
+        po.report_person_id reportPersonId,
+        po.process_instance_id processInstanceId
+        FROM
+        patrol_order po
+        <if test="collectPersonId != null and collectPersonId != ''">
+            ,patrol_rf_collector prc
+        </if>
+    </sql>
+
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="id !=null">
+            and po.id = #{id}
+        </if>
+        <if test="patrolOrderNum !=null">
+            and po.patrolordernum = #{patrolOrderNum}
+        </if>
+        <if test="createtime!=null">
+            and po.createtime = #{createtime}
+        </if>
+        <if test="description !=null">
+            and po.description = #{description}
+        </if>
+        <if test="patrolPlanId !=null">
+            and po.patrolplanid = #{patrolPlanId}
+        </if>
+        <if test="patrolRouteId !=null">
+            and po.patrolrouteid = #{patrolRouteId}
+        </if>
+        <if test="isqrcode !=null">
+            and po.isqrcode = #{isqrcode}
+        </if>
+        <if test="status != null and status.size()>0">
+            and po.status in
+            <foreach collection="status" item="statu" index="index" open="(" separator=" , " close=")">
+                #{statu}
+            </foreach>
+        </if>
+        <if test="type != null and type.size()>0">
+            and po.type in
+            <foreach collection="type" item="t" index="index" open="(" separator=" , " close=")">
+                #{t}
+            </foreach>
+        </if>
+        <if test="updatetime !=null">
+            and po.updatetime = #{updatetime}
+        </if>
+        <if test="siteId!=null">
+            and po.siteid = #{siteId}
+        </if>
+        <if test="orgId!=null">
+            and po.orgid = #{orgId}
+        </if>
+        <if test="assignpersonid!=null">
+            and po.assignpersonid = #{assignPersonId}
+        </if>
+        <if test="createpersonid!=null">
+            and po.createpersonid = #{createPersonId}
+        </if>
+        <if test="excutepersonid!=null">
+            and po.excutepersonid = #{excutePersonId}
+        </if>
+        <if test="words!=null and words!=''">
+            and
+            <foreach collection="words" item="word" index="index" close=""
+                     open="" separator=" and ">
+                (po.patrolordernum like concat('%',#{word},'%')
+                or po.description like concat('%',#{word},'%'))
+            </foreach>
+        </if>
+        <if test="collectPersonId != null and collectPersonId != ''">
+            and po.id = prc.collect_id
+            and prc.person_id = #{collectPersonId}
+            and prc.type = 'patrolOrder'
+        </if>
+        <if test="startDate != null ">
+            <![CDATA[ and po.createtime  >= #{startDate} ]]>
+        </if>
+        <if test="endDate != null ">
+            <![CDATA[ and po.createtime  <=  #{endDate}  ]]>
+        </if>
+        <choose>
+            <when test="sorts !=null and sorts !=''">
+                order by ${sorts}
+            </when>
+            <otherwise>
+                order by po.createtime Desc
+            </otherwise>
+        </choose>
+    </sql>
+
+    <select id="findPatrolOrderByPatrolplanid" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.PatrolOrderVo">
+        SELECT * FROM patrol_order where patrolplanid = #{0}
+    </select>
+
+
+    <select id="findPatrolOrderTotal" parameterType="map" resultType="com.enerbos.cloud.eam.vo.OrderCountBySiteVo">
+
+        select count(*) total FROM patrol_order where 1=1
+        <if test="orgId != null ">
+            <![CDATA[ and orgid  = #{orgId} ]]>
+        </if>
+        <if test="startDate != null ">
+            <![CDATA[ and createtime  >= #{startDate} ]]>
+        </if>
+        <if test="endDate != null ">
+            <![CDATA[ and createtime  <=  #{endDate}  ]]>
+        </if>
+    </select>
+
+    <select id="findMaxCountOrder" parameterType="map" resultType="com.enerbos.cloud.eam.vo.OrderMaxCountVo">
+
+        SELECT a.total AS maxTotal,a.siteid AS siteId,'最大巡检工单' AS orderName FROM
+        (SELECT COUNT(*) total ,siteid FROM patrol_order WHERE 1=1
+        <include refid="wehreColumn"/>
+        GROUP BY siteid) a WHERE a.total = ( SELECT MAX(total) FROM (SELECT COUNT(*) total ,siteid FROM patrol_order
+        WHERE 1=1
+        <include refid="wehreColumn"/>
+        GROUP BY siteid) b)
+
+
+    </select>
+
+    <sql id="wehreColumn">
+        <if test="orgId != null ">
+            <![CDATA[ and orgid  = #{orgId} ]]>
+        </if>
+        <if test="startDate != null ">
+            <![CDATA[ and createtime  >= #{startDate} ]]>
+        </if>
+        <if test="endDate != null ">
+            <![CDATA[ and createtime  <= #{endDate} ]]>
+        </if>
+    </sql>
+
+
+</mapper>

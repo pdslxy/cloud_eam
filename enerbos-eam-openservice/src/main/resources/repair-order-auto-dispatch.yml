@@ -1,0 +1,7 @@
+repairOrderAutoDispatch:
+  # 需要自动分派的站点，以及工程类型对应的域值列表(逗号分隔)
+  siteMap:
+     2c9380945fe6c01f015fece6bc5a0006: SK_E,SK_P,SK_A,SK_JX
+
+
+

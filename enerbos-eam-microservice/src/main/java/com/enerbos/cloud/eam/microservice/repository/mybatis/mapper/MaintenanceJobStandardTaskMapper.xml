@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaintenanceJobStandardTaskDao">
+	<!-- 查询字段公共sql -->
+	<sql id="selectAllColumns">
+		<![CDATA[
+		SELECT
+			 id as id, 
+			 description as description, 
+			 job_standard_id as jobStandardId, 
+			 org_id as orgId, 
+			 quality_standard as qualityStandard, 
+			 site_id as siteId, 
+			 task_duration as taskDuration, 
+			 task_sequence as taskSequence,
+			 update_date as updateDate,
+			 create_user as createUser,
+			 create_date as createDate
+			FROM eam_job_standard_task jobStandardTask
+		]]>
+	</sql>
+
+	<select id="findJobStandardTaskByJobStandardId" resultType="com.enerbos.cloud.eam.vo.MaintenanceJobStandardTaskVo" parameterType="java.lang.String">
+		<include refid="selectAllColumns" />
+		where 1=1 
+		<if test = "jobStandardId != null ">
+			<![CDATA[ and jobStandardTask.job_standard_id  = #{jobStandardId} ]]>
+		</if>
+	</select>
+
+	<select id="findJobStandardTaskByJobStandardIds" resultType="java.lang.String" parameterType="java.lang.String">
+		SELECT	id	FROM eam_job_standard_task jobStandardTask	where 1=1
+		<if test = "jobStandardIds != null ">
+			<![CDATA[ and jobStandardTask.job_standard_id  in  ]]>
+			<foreach collection="jobStandardIds" item="jobStandardId" index="index" open="(" separator=" , " close=")">
+				#{jobStandardId}
+			</foreach>
+		</if>
+	</select>
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.WarningRepairDao">
+	
+	<!-- 查询字段公共sql -->
+	<sql id="base_columns">
+		 warningRepair.id ,
+		 warningRepair.create_date createDate ,
+		 warningRepair.create_user createUser ,
+		 warningRepair.asset_id assetId ,
+		 warningRepair.work_order_id workOrderId ,
+		 warningRepair.meter_id meterId,
+		 warningRepair.tag_name tagName ,
+		 warningRepair.warning_type warningType ,
+		 warningRepair.detecte_value detecteValue,
+		 warningRepair.description
+	</sql>
+	<select id="findByTagNameAndWaringType" parameterType="string" resultType="com.enerbos.cloud.eam.vo.WarningRepairVo">
+		SELECT  <include refid="base_columns" />
+		FROM  eam_warning_repair warningRepair
+		WHERE tag_name = #{tagName} and warning_type = #{warningType}
+		ORDER BY  create_date desc
+		limit 1
+	</select>
+
+</mapper>

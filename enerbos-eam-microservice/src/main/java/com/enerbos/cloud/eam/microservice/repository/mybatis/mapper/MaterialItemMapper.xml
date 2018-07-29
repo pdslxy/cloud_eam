@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.MaterialItemDao">
+
+
+    <select id="findItems" resultType="com.enerbos.cloud.eam.vo.MaterialItemVoForList" parameterType="map">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+    </select>
+
+    <sql id="select_columns">
+		select id  ,description,tools,item_num as itemNum,org_id as orgId
+		,asset ,site_id as
+		siteId,spare_Part as sparePart,
+		`status`,model,brand  from eam_material_item
+		item
+	</sql>
+
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="id !=null">
+            and item.id = #{id}
+        </if>
+        <if test="conversion !=null">
+            and item.conversion = #{conversion}
+        </if>
+        <if test="itemNum!=null">
+            and item.item_num = #{itemNum}
+        </if>
+
+        <if test="description!=null">
+            and item.description = #{description}
+        </if>
+        <if test="isTools!=null">
+            and item.tools = #{tools}
+        </if>
+        <if test="maxissue !=null">
+            and item.max_issue = #{maxissue}
+        </if>
+        <if test="orgId !=null">
+            and item.org_id = #{orgId}
+        </if>
+
+        <if test="isAsset!=null">
+            and item.asset = #{asset}
+        </if>
+        <if test="siteId!=null">
+            and item.site_id = #{siteId}
+        </if>
+        <if test="isSparePart!=null">
+            and item.spare_Part = #{sparePart}
+        </if>
+
+        <if test="status!=null">
+            and item.status = #{status}
+        </if>
+
+
+        <if test="brand !=null">
+            and item.brand = #{brand}
+        </if>
+        <if test="issueUnit !=null">
+            and item.issueUnit = #{issueUnit }
+        </if>
+        <if test="orderUnit !=null">
+            and item.orderUnit = #{orderUnit }
+        </if>
+        <if test="starttime!=null">
+            and item.create_date &gt; #{starttime}
+        </if>
+        <if test="endtime!=null">
+            and item.create_date &lt; #{endtime}
+        </if>
+
+        <if test="collect!=null">
+            and item.id IN (SELECT collect_id FROM eam_material_rf_collector WHERE TYPE = 'item')
+        </if>
+        <if test="words!=null">
+            and
+            <foreach collection="words" item="word" index="index" close=""
+                     open="" separator=" and ">
+                (item.description like concat('%',#{word},'%') or
+                item.item_num like concat('%',#{word},'%') or
+                item.model like concat('%',#{word},'%') or
+                item.brand like concat('%',#{word},'%'))
+            </foreach>
+        </if>
+
+
+        <if test="sorts!=null and sorts!='' ">
+            order by ${sorts}
+        </if>
+
+        <if test="sorts==null">
+            order by item.create_date DESC
+        </if>
+    </sql>
+    <select id="findItemsNotInResevies" resultType="com.enerbos.cloud.eam.vo.MaterialItemVoForList" parameterType="map">
+
+        <![CDATA[ SELECT id,description,tools,item_num AS itemNum,org_id AS orgId,asset ,site_id AS siteId,spare_Part AS sparePart,`status`,model,brand  FROM eam_material_item where 1=1]]>
+        <if test="itemNums!=null">
+            and item_num not in
+            <foreach collection="itemNums" item="itemNum" index="index" close=")"
+                     open="(" separator=",">
+                #{itemNum}
+            </foreach>
+        </if>
+        <if test="siteId!=null">
+            and site_id = #{siteId}
+        </if>
+        <if test="orgId!=null">
+            and org_id = #{orgId}
+        </if>
+        <if test="sorts==null">
+            order by create_date DESC
+        </if>
+    </select>
+
+    <select id="findItemByAssertId" resultType="com.enerbos.cloud.eam.vo.MaterialItemVoForAssertList"
+            parameterType="map">
+
+        SELECT a.id,a.`item_num` itemNum,a.`description`,a.`model` ,a.`status`,b.`current_balance` currentBalance FROM
+        eam_material_item a,eam_material_inventory b WHERE a.`id` = b.`item_id`
+
+        <if test="itemIds!=null">
+            and a.id in
+            <foreach collection="itemIds" item="itemId" index="index" close=")"
+                     open="(" separator=",">
+                #{itemId}
+            </foreach>
+        </if>
+
+    </select>
+
+
+    <select id="findByIdAndQrCodeNumAndSiteId" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.MaterialItemVo">
+
+        select item.id,item.item_num itemNum,item.description,item.brand,item.model,item.status,item.spare_part
+        sparePart,
+        item.asset,item.tools,item.order_unit orderUnit,item.issue_unit issueUnit,item.conversion,item.max_issue
+        maxIssue,
+        item.site_id siteId,item.org_id orgId,item.create_user createUser,item.create_date createDate,item.update_date
+        updateDate,
+        item.qrcodenum qrCodeNum,item.isupdatedata
+        from eam_material_item item
+        <include refid="where_columns_qrcode"></include>
+    </select>
+    <sql id="where_columns_qrcode">
+        where 1=1
+        <if test="id !=null and id != ''">
+            and item.id in
+            <foreach collection="id" item="i" close=")" open="(" index="index" separator=",">
+                #{i}
+            </foreach>
+        </if>
+        <if test="qrCodeNum !=null and qrCodeNum != ''">
+            and item.qrcodenum = #{qrCodeNum}
+        </if>
+        <if test="siteId!=null and siteId != ''">
+            and item.site_id = #{siteId}
+        </if>
+    </sql>
+
+    <update id="updateIsupdatedata" parameterType="Object">
+        update eam_material_item set isupdatedata=#{2} where id=#{0} and siteid=#{1}
+    </update>
+
+
+</mapper>

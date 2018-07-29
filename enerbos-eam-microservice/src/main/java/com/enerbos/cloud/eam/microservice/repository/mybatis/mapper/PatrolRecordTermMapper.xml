@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+        namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.PatrolRecordTermDao">
+
+
+    <select id="findExcutePatrolOrderByPoint" resultType="map" parameterType="String">
+        <include refid="select_columns"></include>
+        <include refid="where_columns"></include>
+        <include refid="order"></include>
+    </select>
+
+    <sql id="select_columns">
+      SELECT DISTINCT
+	  prt.patrolorderid id,
+	  po.patrolordernum
+      FROM
+	  patrol_recordterm prt
+      LEFT JOIN patrol_order po ON
+      prt.patrolorderid = po.id
+	</sql>
+
+
+    <sql id="where_columns">
+        where 1=1
+        <if test="patrolPointId !=null">
+            and prt.patrolpointid = #{patrolPointId}
+        </if>
+        <if test="orderStatus !=null">
+            and po.status = #{orderStatus}
+        </if>
+    </sql>
+
+    <sql id="order">
+        ORDER  By prt.updatetime Desc
+    </sql>
+
+    <select id="findTermStatusListByOrder" resultType="map" parameterType="String">
+        SELECT
+        prt.id,
+        prt.patroltermdsr,
+        prt.isqualified,
+        prt.updatetime
+        FROM
+        patrol_recordterm prt
+        where 	prt.patrolorderid =  #{orderId}
+        AND patrolpointid = #{pointId}
+    </select>
+
+
+    <select id="findPatrolTermByOrderAndPoint" parameterType="Object"
+            resultType="com.enerbos.cloud.eam.vo.PatrolRecordTermVo">
+        SELECT
+	      b.id,
+	      b.patroltermdsr patrolTermDsr,
+	      b.patrolpointid patrolPointId,
+	      b.isqualified,
+	      b.exceptiondsr exceptionDsr
+        FROM
+	      patrol_recordterm b
+        WHERE
+	      b.patrolpointid = #{pointid}
+        AND
+	      b.patrolorderid = #{id}
+    </select>
+
+    <delete id="deleteByOrderId" parameterType="String">
+        delete from patrol_recordterm  where patrolorderid=#{patrolOrderId}
+    </delete>
+</mapper>

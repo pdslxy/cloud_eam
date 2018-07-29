@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.ConstructionDao">
+
+    <!-- 查询字段公共sql -->
+    <sql id="selectAllColumns">
+		<![CDATA[
+
+			SELECT 
+				id            AS   id          ,
+				construction_num      AS   constructionNum    ,
+				description          AS   description        ,
+				status      AS   status    ,
+				supervision_id      AS   supervisionId    ,
+				security_officer_id AS securityOfficerId,
+				contract_id           AS   contractId         ,
+				supervise_desc        AS   superviseDesc      ,
+				construct_weather AS constructWeather,
+				site_id           AS   siteId         ,
+				org_id   AS   orgId ,
+				is_fire       AS   isFire     ,
+				is_climb_up        AS   isClimbUp      ,
+				construction_person_count AS constructionPersonCount,
+				confirm_date       AS   confirmDate     ,
+				confirm_person_id       AS   confirmPersonId     ,
+				remark      AS   remark    ,
+				process_instance_id AS processInstanceId,
+				report_id       AS   reportId,
+				report_date       AS   reportDate,
+				 update_date as updateDate,
+				 create_user as createUser,
+				 create_date as createDate
+				from eam_construction construction
+
+        ]]>
+	</sql>
+
+    <select id="findConstructionByID" parameterType="String"
+            resultType="com.enerbos.cloud.eam.microservice.domain.Construction">
+        <include refid="selectAllColumns"/>
+        where construction.id = #{id}
+    </select>
+
+    <select id="findConstructionByConstructionNum" parameterType="String"
+            resultType="com.enerbos.cloud.eam.vo.ConstructionVo">
+        <include refid="selectAllColumns"/>
+        where construction.construction_num = #{constructionNum}
+    </select>
+
+    <select id="findPageConstructionList" resultType="com.enerbos.cloud.eam.vo.ConstructionForListVo"
+            parameterType="com.enerbos.cloud.eam.vo.ConstructionForFilterVo">
+        SELECT
+        id AS id ,
+        construction_num AS constructionNum ,
+        description AS description ,
+        contract_id AS contractId,
+        supervision_id AS supervisionId ,
+        create_date AS createDate ,
+        site_id AS siteId ,
+        org_id AS orgId ,
+        status AS status,
+        create_date As creeateDate,
+        collect
+        FROM
+        (SELECT
+        *,
+        <choose>
+            <!-- 如果人员ID为空，则不需要连表操作 -->
+            <when test="personId != null ">
+                EXISTS (
+                SELECT 1 FROM
+                eam_construction_rf_collector constructionRfCollector
+                WHERE
+                eam_construction.id = constructionRfCollector.construction_id
+                AND constructionRfCollector.person_id = #{personId}
+                ) AS collect
+            </when>
+            <otherwise>
+                0 as collect
+            </otherwise>
+        </choose>
+        from eam_construction) construction
+        where 1=1
+        <if test="supervisionId != null  and supervisionId.size()>0">
+            and construction.supervision_id in
+            <foreach collection="supervisionId" item="supervisionId" index="index" open="(" separator=" , " close=")">
+                #{supervisionId}
+            </foreach>
+        </if>
+        <if test="contractId != null ">
+            <![CDATA[ and construction.contract_id  = #{contractId} ]]>
+        </if>
+        <if test="status != null  and status.size()>0">
+            and construction.status in
+            <foreach collection="status" item="status" index="index" open="(" separator=" , " close=")">
+                #{status}
+            </foreach>
+        </if>
+        <if test="constructWeather != null  and constructWeather.size()>0">
+            and construction.construct_weather in
+            <foreach collection="constructWeather" item="constructWeather" index="index" open="(" separator=" , "
+                     close=")">
+                #{constructWeather}
+            </foreach>
+        </if>
+        <if test="isFire != null ">
+            <![CDATA[ and construction.is_fire  = #{isFire} ]]>
+        </if>
+        <if test="isClimbUp != null ">
+            <![CDATA[ and construction.is_climb_up  = #{isClimbUp} ]]>
+        </if>
+        <if test="reportId != null  and reportId.size()>0">
+            and construction.report_id in
+            <foreach collection="reportId" item="reportId" index="index" open="(" separator=" , " close=")">
+                #{reportId}
+            </foreach>
+        </if>
+        <if test="siteId != null ">
+            <![CDATA[ and construction.site_id  = #{siteId} ]]>
+        </if>
+        <if test="orgId != null ">
+            <![CDATA[ and construction.org_id  = #{orgId} ]]>
+        </if>
+        <if test="reportStartDate != null ">
+            <![CDATA[ and construction.report_date  >= #{reportStartDate} ]]>
+        </if>
+        <if test="reportEndDate != null ">
+            <![CDATA[ and construction.report_date  <= DATE_SUB(#{reportEndDate},INTERVAL -1 DAY) ]]>
+        </if>
+        <if test="confirmStartDate != null ">
+            <![CDATA[ and construction.confirm_date  >= #{confirmStartDate} ]]>
+        </if>
+        <if test="confirmEndDate != null ">
+            <![CDATA[ and construction.confirm_date  <= DATE_SUB(#{confirmEndDate},INTERVAL -1 DAY) ]]>
+        </if>
+        <if test="confirmPersonId != null and confirmPersonId.size()>0">
+            and construction.confirm_person_id in
+            <foreach collection="confirmPersonId" item="confirmPersonId" index="index" open="(" separator=" , "
+                     close=")">
+                #{confirmPersonId}
+            </foreach>
+        </if>
+        <if test="createUser != null and createUser.size()>0">
+            and construction.create_user in
+            <foreach collection="createUser" item="createUser" index="index" open="(" separator=" , " close=")">
+                #{createUser}
+            </foreach>
+        </if>
+        <if test="createStartDate != null ">
+            <![CDATA[ and construction.create_date  >= #{createStartDate} ]]>
+        </if>
+        <if test="createEndDate != null ">
+            <![CDATA[ and construction.create_date  <= DATE_SUB(#{createEndDate},INTERVAL -1 DAY) ]]>
+        </if>
+        <if test="keywords != null ">
+            <foreach collection="keywords" item="word" index="index" separator="  ">
+                and (construction.construction_num like CONCAT('%',#{word},'%') or
+                construction.description like CONCAT('%',#{word},'%')
+                )
+            </foreach>
+        </if>
+        <if test="collect != null">
+            and construction.collect = #{collect}
+        </if>
+        <choose>
+            <when test="sorts !=null and sorts !=''">
+                order by ${sorts}
+            </when>
+            <otherwise>
+                order by construction.create_date desc
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

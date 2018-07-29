@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.enerbos.cloud.eam.microservice.repository.mybatis.AppVersionDao">
+	
+	<!-- 查询字段公共sql -->
+	<sql id="selectAllColumns">
+		<![CDATA[
+		SELECT
+			 appversionid    as   appversionid   ,
+			downloadurl     as   downloadurl    ,
+			mustbe          as   mustbe         ,
+			platform        as   platform       ,
+			platformversion as   platformversion,
+			releasedate     as   releasedate    ,
+			releasenote     as   releasenote    ,
+			version         as   version
+			FROM eam_appversion appversion
+		]]>
+	</sql>
+
+	<select id="findAppVersion" resultType="com.enerbos.cloud.eam.vo.AppVersionVo" parameterType="com.enerbos.cloud.eam.vo.AppVersionForFilterVo">
+		<include refid="selectAllColumns" /> 
+		where 1=1
+		<if test = "platform != null ">
+			<![CDATA[ and appversion.platform  = #{platform} ]]>
+		</if>
+		<if test = "currVersion != null ">
+			<![CDATA[ and appversion.version  = #{currVersion} ]]>
+		</if>
+		<if test = "releasedate != null ">
+			<![CDATA[ and appversion.releasedate > #{releasedate} ]]>
+		</if>
+		GROUP BY appversion.releasedate desc
+	</select>
+</mapper>
